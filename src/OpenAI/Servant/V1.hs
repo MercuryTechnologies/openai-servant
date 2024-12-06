@@ -7,6 +7,7 @@ module OpenAI.Servant.V1
     , API
     ) where
 
+import Data.ByteString.Char8 ()
 import Data.Proxy (Proxy(..))
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.ListOf (ListOf)
@@ -38,8 +39,8 @@ getMethods
 getMethods authorization = Methods{..}
   where
     (       (     createSpeech
-            :<|>  createTranscription
-            :<|>  createTranslation
+            :<|>  createTranscription_
+            :<|>  createTranslation_
                     )
       :<|>  createChatCompletion
       :<|>  createEmbeddings
@@ -55,31 +56,45 @@ getMethods authorization = Methods{..}
             :<|>  cancelBatch
             :<|>  listBatch
             )
-      :<|>  (     uploadFile
+      :<|>  (     uploadFile_
             :<|>  listFiles
             :<|>  retrieveFile
             :<|>  deleteFile
             :<|>  retrieveFileContent
             )
       :<|>  (     createImage
-            :<|>  createImageEdit
-            :<|>  createImageVariation
+            :<|>  createImageEdit_
+            :<|>  createImageVariation_
             )
       :<|>  (     createUpload
-            :<|>  addUploadPart
+            :<|>  addUploadPart_
             :<|>  completeUpload
             :<|>  cancelUpload
             )
       ) = Client.client (Proxy @API) authorization
+
+    createTranscription a = createTranscription_ (boundary, a)
+    createTranslation a = createTranslation_ (boundary, a)
+    uploadFile a = uploadFile_ (boundary, a)
+    addUploadPart a b = addUploadPart_ a (boundary, b)
+    createImageEdit a = createImageEdit_ (boundary, a)
+    createImageVariation a = createImageVariation_ (boundary, a)
+
+-- | Hard-coded boundary to simplify the user-experience
+--
+-- I don't understand why `multipart-servant-client` insists on generating a
+-- fresh boundary for each request (or why it doesn't handle that for you)
+boundary :: ByteString
+boundary = "j3qdD3XtDVjvva8IIqoBzHQAYwCenObtPMkxAFnylwFyU5xffWKoYrY"
 
 -- | API methods
 data Methods = Methods
     { createSpeech
         :: Audio.Speech.Request -> ClientM Audio.Speech.Response
     , createTranscription
-        :: (ByteString, Audio.Transcriptions.Request) -> ClientM Audio.Transcriptions.Response
+        :: Audio.Transcriptions.Request -> ClientM Audio.Transcriptions.Response
     , createTranslation
-        :: (ByteString, Audio.Translations.Request) -> ClientM Audio.Translations.Response
+        :: Audio.Translations.Request -> ClientM Audio.Translations.Response
     , createChatCompletion
         :: Chat.Completions.Request -> ClientM Chat.Completions.Response
     , createEmbeddings
@@ -132,8 +147,7 @@ data Methods = Methods
         -> Maybe Natural
         -- ^ limit
         -> ClientM (ListOf Batches.Batch)
-    , uploadFile
-        :: (ByteString, Files.Request) -> ClientM Files.File
+    , uploadFile :: Files.Request -> ClientM Files.File
     , listFiles
         :: Maybe Files.Purpose
         -- ^
@@ -161,7 +175,7 @@ data Methods = Methods
     , addUploadPart
         :: Text
         -- ^ Upload ID
-        -> (ByteString, Uploads.AddUploadPart)
+        -> Uploads.AddUploadPart
         -- ^
         -> ClientM Uploads.Part
     , completeUpload
@@ -177,10 +191,9 @@ data Methods = Methods
     , createImage
         :: Generations.CreateImage -> ClientM (ListOf Image.Image)
     , createImageEdit
-        :: (ByteString, Edits.CreateImageEdit) -> ClientM (ListOf Image.Image)
+        :: Edits.CreateImageEdit -> ClientM (ListOf Image.Image)
     , createImageVariation
-        :: (ByteString, Variations.CreateImageVariation)
-        -> ClientM (ListOf Image.Image)
+        :: Variations.CreateImageVariation -> ClientM (ListOf Image.Image)
     }
 
 -- | API

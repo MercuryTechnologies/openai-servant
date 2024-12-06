@@ -10,7 +10,6 @@
 module Main where
 
 import Servant.Client (ClientM)
-import Control.Monad.IO.Class (liftIO)
 import OpenAI.Servant.V1 (Methods(..))
 
 import qualified Control.Exception as Exception
@@ -33,12 +32,8 @@ import qualified OpenAI.Servant.V1.Images.Variations as Variations
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
-import qualified Servant.Multipart.Client as Multipart.Client
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as HUnit
-
-instance MonadFail ClientM where
-    fail = liftIO . fail
 
 main :: IO ()
 main = do
@@ -54,8 +49,6 @@ main = do
     let clientEnv = Client.mkClientEnv manager baseUrl
 
     key <- Environment.getEnv "OPENAI_KEY"
-
-    boundary <- Multipart.Client.genBoundary
 
     let authorization = "Bearer " <> Text.pack key
 
@@ -93,40 +86,26 @@ main = do
     let transcriptionTest =
             HUnit.testCase "Create transcription" do
                 run do
-                    _ <- createTranscription
-                        ( boundary
-                        , Transcriptions.Request
-                            { Transcriptions.file =
-                                "tasty/data/v1/audio/preamble.wav"
-                            , Transcriptions.model =
-                                "whisper-1"
-                            , Transcriptions.language =
-                                Just "en"
-                            , Transcriptions.prompt =
-                                Nothing
-                            , Transcriptions.temperature =
-                                Just 0
-                            }
-                        )
+                    _ <- createTranscription Transcriptions.Request
+                        { Transcriptions.file =
+                            "tasty/data/v1/audio/preamble.wav"
+                        , Transcriptions.model = "whisper-1"
+                        , Transcriptions.language = Just "en"
+                        , Transcriptions.prompt = Nothing
+                        , Transcriptions.temperature = Just 0
+                        }
 
                     return ()
 
     let translationTest =
             HUnit.testCase "Create translation" do
                 run do
-                    _ <- createTranslation
-                        ( boundary
-                        , Translations.Request
-                            { Translations.file =
-                                "tasty/data/v1/audio/preamble.wav"
-                            , Translations.model =
-                                "whisper-1"
-                            , Translations.prompt =
-                                Nothing
-                            , Translations.temperature =
-                                Just 0
-                            }
-                        )
+                    _ <- createTranslation Translations.Request
+                        { Translations.file = "tasty/data/v1/audio/preamble.wav"
+                        , Translations.model = "whisper-1"
+                        , Translations.prompt = Nothing
+                        , Translations.temperature = Just 0
+                        }
 
                     return ()
 
@@ -260,23 +239,17 @@ main = do
     let fineTuningTest = do
             HUnit.testCase "Fine-tuning and File operations - maximal" do
                 run do
-                    trainingFile <- uploadFile
-                        ( boundary
-                        , Files.Request
-                            { Files.file =
-                                "tasty/data/v1/fine_tuning/jobs/training_data.jsonl"
-                            , Files.purpose = Files.Fine_Tune
-                            }
-                        )
+                    trainingFile <- uploadFile Files.Request
+                        { Files.file =
+                            "tasty/data/v1/fine_tuning/jobs/training_data.jsonl"
+                        , Files.purpose = Files.Fine_Tune
+                        }
 
-                    validationFile <- uploadFile
-                        ( boundary
-                        , Files.Request
-                            { Files.file =
-                                "tasty/data/v1/fine_tuning/jobs/validation_data.jsonl"
-                            , Files.purpose = Files.Fine_Tune
-                            }
-                        )
+                    validationFile <- uploadFile Files.Request
+                        { Files.file =
+                            "tasty/data/v1/fine_tuning/jobs/validation_data.jsonl"
+                        , Files.purpose = Files.Fine_Tune
+                        }
 
                     _ <- retrieveFile (Files.id trainingFile)
 
@@ -320,14 +293,10 @@ main = do
     let batchesTest = do
             HUnit.testCase "Batch operations" do
                 run do
-                    requestsFile <- uploadFile
-                        ( boundary
-                        , Files.Request
-                            { Files.file =
-                                "tasty/data/v1/batches/requests.jsonl"
-                            , Files.purpose = Files.Batch
-                            }
-                        )
+                    requestsFile <- uploadFile Files.Request
+                        { Files.file = "tasty/data/v1/batches/requests.jsonl"
+                        , Files.purpose = Files.Batch
+                        }
 
                     batch <- createBatch Batches.Request
                         { Batches.input_file_id = Files.id requestsFile
@@ -363,21 +332,11 @@ main = do
                         , mime_type = "text/jsonl"
                         }
 
-                    part0 <- addUploadPart (Uploads.id upload1)
-                        ( boundary
-                        , Uploads.AddUploadPart
-                            { data_ =
-                                "tasty/data/v1/uploads/training_data0.jsonl"
-                            }
-                        )
+                    part0 <- addUploadPart (Uploads.id upload1) Uploads.AddUploadPart
+                        { data_ = "tasty/data/v1/uploads/training_data0.jsonl" }
 
-                    part1 <- addUploadPart (Uploads.id upload1)
-                        ( boundary
-                        , Uploads.AddUploadPart
-                            { data_ =
-                                "tasty/data/v1/uploads/training_data1.jsonl"
-                            }
-                        )
+                    part1 <- addUploadPart (Uploads.id upload1) Uploads.AddUploadPart
+                        { data_ = "tasty/data/v1/uploads/training_data1.jsonl" }
 
                     _ <- completeUpload (Uploads.id upload1) Uploads.CompleteUpload
                         { part_ids =
@@ -424,71 +383,60 @@ main = do
     let createImageEditMinimalTest = do
             HUnit.testCase "Create image edit - minimal" do
                 run do
-                    _ <- createImageEdit
-                        ( boundary
-                        , Edits.CreateImageEdit
-                            { image = "tasty/data/v1/images/image.png"
-                            , prompt = "The panda should be greener"
-                            , mask = Nothing
-                            , model = Nothing
-                            , n = Nothing
-                            , size = Nothing
-                            , response_format = Nothing
-                            , user = Nothing
-                            }
-                        )
+                    _ <- createImageEdit Edits.CreateImageEdit
+                        { image = "tasty/data/v1/images/image.png"
+                        , prompt = "The panda should be greener"
+                        , mask = Nothing
+                        , model = Nothing
+                        , n = Nothing
+                        , size = Nothing
+                        , response_format = Nothing
+                        , user = Nothing
+                        }
 
                     return ()
 
     let createImageEditMaximalTest = do
             HUnit.testCase "Create image edit - maximal" do
                 run do
-                    _ <- createImageEdit
-                        ( boundary
-                        , Edits.CreateImageEdit
-                            { image = "tasty/data/v1/images/image.png"
-                            , prompt = "The panda should be greener"
-                            , mask = Nothing
-                            , model = Just "dall-e-2"
-                            , n = Just 1
-                            , size = Just "1024x1024"
-                            , response_format = Just ResponseFormat.URL
-                            , user = Just user
-                            }
-                        )
+                    _ <- createImageEdit Edits.CreateImageEdit
+                        { image = "tasty/data/v1/images/image.png"
+                        , prompt = "The panda should be greener"
+                        , mask = Nothing
+                        , model = Just "dall-e-2"
+                        , n = Just 1
+                        , size = Just "1024x1024"
+                        , response_format = Just ResponseFormat.URL
+                        , user = Just user
+                        }
 
                     return ()
 
     let createImageVariationMinimalTest = do
             HUnit.testCase "Create image variation - minimal" do
                 run do
-                    _ <- createImageVariation
-                        ( boundary
-                        , Variations.CreateImageVariation
-                            { image = "tasty/data/v1/images/image.png"
-                            , model = Nothing
-                            , n = Nothing
-                            , response_format = Nothing
-                            , size = Nothing
-                            , user = Nothing
-                            }
-                        )
+                    _ <- createImageVariation Variations.CreateImageVariation
+                        { image = "tasty/data/v1/images/image.png"
+                        , model = Nothing
+                        , n = Nothing
+                        , response_format = Nothing
+                        , size = Nothing
+                        , user = Nothing
+                        }
+
                     return ()
 
     let createImageVariationMaximalTest = do
             HUnit.testCase "Create image variation - maximal" do
                 run do
-                    _ <- createImageVariation
-                        ( boundary
-                        , Variations.CreateImageVariation
-                            { image = "tasty/data/v1/images/image.png"
-                            , model = Just "dall-e-2"
-                            , n = Just 1
-                            , response_format = Just ResponseFormat.URL
-                            , size = Just "1024x1024"
-                            , user = Just user
-                            }
-                        )
+                    _ <- createImageVariation Variations.CreateImageVariation
+                        { image = "tasty/data/v1/images/image.png"
+                        , model = Just "dall-e-2"
+                        , n = Just 1
+                        , response_format = Just ResponseFormat.URL
+                        , size = Just "1024x1024"
+                        , user = Just user
+                        }
 
                     return ()
 

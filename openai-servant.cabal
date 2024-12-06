@@ -72,7 +72,6 @@ test-suite tasty
                     , http-client-tls
                     , openai-servant
                     , servant-client
-                    , servant-multipart-client
                     , tasty
                     , tasty-hunit
                     , text
