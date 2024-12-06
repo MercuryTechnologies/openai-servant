@@ -6,7 +6,6 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     , WAndB(..)
     , Integration(..)
     , Request(..)
-    , ErrorInformation(..)
     , Status(..)
     , Job(..)
     , Level(..)
@@ -17,6 +16,7 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
 
 -- | A type that can also be the string @\"auto\"@
@@ -80,19 +80,6 @@ data Request = Request
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
 
--- | For fine-tuning jobs that have @failed@, this will contain more
--- information on the cause of the failure.
---
--- NOTE: OpenAPI API's says that the `code` and `message` fields are required,
--- but in practice the `ErrorInformation` record can be present with all fields
--- omitted, so they are all marked optional (`Maybe`) here
-data ErrorInformation = ErrorInformation
-    { code :: Maybe Text
-    , message :: Maybe Text
-    , param :: Maybe Text
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
-
 -- | The current status of the fine-tuning job
 data Status
     = Validating_Files
@@ -111,7 +98,7 @@ instance FromJSON Status where
 data Job = Job
     { id :: Text
     , created_at :: POSIXTime
-    , error :: Maybe ErrorInformation
+    , error :: Maybe Error
     , fine_tuned_model :: Maybe Text
     , finished_at :: Maybe POSIXTime
     , job_hyperparameters :: Hyperparameters

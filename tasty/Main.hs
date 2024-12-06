@@ -18,6 +18,7 @@ import qualified OpenAI.Servant.V1 as V1
 import qualified OpenAI.Servant.V1.Audio.Speech as Speech
 import qualified OpenAI.Servant.V1.Audio.Transcriptions as Transcriptions
 import qualified OpenAI.Servant.V1.Audio.Translations as Translations
+import qualified OpenAI.Servant.V1.Batches as Batches
 import qualified OpenAI.Servant.V1.Chat.Completions as Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.Files as Files
@@ -50,24 +51,29 @@ main = do
     let user = "openai Haskell package"
     let chatModel = "gpt-4o-mini"
 
-    let (       (     postV1AudioSpeech
-                :<|>  postV1AudioTranscriptions
-                :<|>  postV1AudioTranslations
+    let (       (     createSpeech
+                :<|>  createTranscription
+                :<|>  createTranslation
                 )
-          :<|>  postV1ChatCompletions
-          :<|>  postV1Embeddings
-          :<|>  (     postV1FineTuningJobs
-                :<|>  getV1FineTuningJobs
-                :<|>  getV1FineTuningJobsIdEvents
-                :<|>  getV1FineTuningJobsIdCheckpoints
-                :<|>  getV1FineTuningJobsId
-                :<|>  postV1FineTuningJobsIdCancel
+          :<|>  createChatCompletion
+          :<|>  createEmbeddings
+          :<|>  (     createFineTuningJob
+                :<|>  listFineTuningJobs
+                :<|>  listFineTuningEvents
+                :<|>  listFineTuningCheckpoints
+                :<|>  retrieveFineTuningJob
+                :<|>  cancelFineTuning
                 )
-          :<|>  (     postV1Files
-                :<|>  getV1Files
-                :<|>  getV1FilesId
-                :<|>  deleteV1FilesId
-                :<|>  getV1FilesIdContent
+          :<|>  (     createBatch
+                :<|>  retrieveBatch
+                :<|>  cancelBatch
+                :<|>  listBatch
+                )
+          :<|>  (     uploadFile
+                :<|>  listFiles
+                :<|>  retrieveFile
+                :<|>  deleteFile
+                :<|>  retrieveFileContent
                 )
           ) = Client.client (Proxy @V1.API) authorization
 
@@ -80,10 +86,10 @@ main = do
 
     -- Test each format to make sure we're handling each possible content type
     -- correctly
-    let v1AudioSpeechTest format =
-            HUnit.testCase ("/v1/audio/speech - " <> show format) do
+    let speechTest format =
+            HUnit.testCase ("Create speech - " <> show format) do
                 run do
-                    _ <- postV1AudioSpeech Speech.Request
+                    _ <- createSpeech Speech.Request
                         { Speech.model = "tts-1"
                         , Speech.input = "Hello, world!"
                         , Speech.voice = Speech.Nova
@@ -93,10 +99,14 @@ main = do
 
                     return ()
 
-    let v1AudioTranscriptionsTest =
-            HUnit.testCase "/v1/audio/transcriptions" do
+    let speechTests = do
+            format <- [ minBound .. maxBound ]
+            return (speechTest format)
+
+    let transcriptionTest =
+            HUnit.testCase "Create transcription" do
                 run do
-                    _ <- postV1AudioTranscriptions
+                    _ <- createTranscription
                         ( boundary
                         , Transcriptions.Request
                             { Transcriptions.file =
@@ -114,10 +124,10 @@ main = do
 
                     return ()
 
-    let v1AudioTranslationsTest =
-            HUnit.testCase "/v1/audio/translations" do
+    let translationTest =
+            HUnit.testCase "Create translation" do
                 run do
-                    _ <- postV1AudioTranslations
+                    _ <- createTranslation
                         ( boundary
                         , Translations.Request
                             { Translations.file =
@@ -133,10 +143,10 @@ main = do
 
                     return ()
 
-    let v1ChatCompletionsMinimalTest =
-            HUnit.testCase "/v1/chat/completions - minimal" do
+    let completionsMinimalTest =
+            HUnit.testCase "Create chat completion - minimal" do
                 run do
-                    _ <- postV1ChatCompletions Completions.Request
+                    _ <- createChatCompletion Completions.Request
                         { Completions.messages =
                             [ Completions.User
                                 { Completions.content = "Hello, world!"
@@ -170,10 +180,10 @@ main = do
 
                     return ()
 
-    let v1ChatCompletionsMaximalTest =
-            HUnit.testCase "/v1/chat/completions - maximal" do
+    let completionsMaximalTest =
+            HUnit.testCase "Create chat completion - maximal" do
                 run do
-                    _ <- postV1ChatCompletions Completions.Request
+                    _ <- createChatCompletion Completions.Request
                         { Completions.messages =
                             [ Completions.User
                                 { Completions.content = "Hello, world!"
@@ -247,10 +257,10 @@ main = do
 
                     return ()
 
-    let v1EmbeddingsTest = do
-            HUnit.testCase "/v1/embeddings" do
+    let embeddingsTest = do
+            HUnit.testCase "Create embedding" do
                 run do
-                    _ <- postV1Embeddings Embeddings.Request
+                    _ <- createEmbeddings Embeddings.Request
                         { Embeddings.input = "Hello, world!"
                         , Embeddings.model = "text-embedding-3-small"
                         , Embeddings.encoding_format = Just Embeddings.Float
@@ -260,76 +270,34 @@ main = do
 
                     return ()
 
-    let v1FineTuningMinimalTest = do
-            HUnit.testCase "/v1/files + /v1/fine_tuning/jobs - minimal" do
+    let fineTuningTest = do
+            HUnit.testCase "Fine-tuning and File operations - maximal" do
                 run do
-                    trainingFile <- postV1Files
+                    trainingFile <- uploadFile
                         ( boundary
                         , Files.Request
                             { Files.file =
-                                "tasty/data/v1/fine_tuning/jobs/training_data.json"
+                                "tasty/data/v1/fine_tuning/jobs/training_data.jsonl"
                             , Files.purpose = Files.Fine_Tune
                             }
                         )
 
-                    _ <- getV1FilesId (Files.id trainingFile)
-
-                    _ <- getV1FilesIdContent (Files.id trainingFile)
-
-                    _ <- getV1Files Nothing Nothing Nothing Nothing
-
-                    job <- postV1FineTuningJobs Jobs.Request
-                        { Jobs.model = "gpt-4o-mini-2024-07-18"
-                        , Jobs.training_file = Files.id trainingFile
-                        , Jobs.hyperparameters = Nothing
-                        , Jobs.suffix = Nothing
-                        , Jobs.validation_file = Nothing
-                        , Jobs.integrations = Nothing
-                        , Jobs.seed = Nothing
-                        }
-
-                    _ <- getV1FineTuningJobsId (Jobs.id job)
-
-                    _ <- getV1FineTuningJobs Nothing Nothing
-
-                    _ <- getV1FineTuningJobsIdCheckpoints (Jobs.id job) Nothing Nothing
-
-                    _ <- postV1FineTuningJobsIdCancel (Jobs.id job)
-
-                    _ <- getV1FineTuningJobsIdEvents (Jobs.id job) Nothing Nothing
-
-                    _ <- deleteV1FilesId (Files.id trainingFile)
-
-                    return ()
-
-    let v1FineTuningMaximalTest = do
-            HUnit.testCase "/v1/files + /v1/fine_tuning/jobs - maximal" do
-                run do
-                    trainingFile <- postV1Files
+                    validationFile <- uploadFile
                         ( boundary
                         , Files.Request
                             { Files.file =
-                                "tasty/data/v1/fine_tuning/jobs/training_data.json"
+                                "tasty/data/v1/fine_tuning/jobs/validation_data.jsonl"
                             , Files.purpose = Files.Fine_Tune
                             }
                         )
 
-                    validationFile <- postV1Files
-                        ( boundary
-                        , Files.Request
-                            { Files.file =
-                                "tasty/data/v1/fine_tuning/jobs/validation_data.json"
-                            , Files.purpose = Files.Fine_Tune
-                            }
-                        )
+                    _ <- retrieveFile (Files.id trainingFile)
 
-                    _ <- getV1FilesId (Files.id trainingFile)
+                    _ <- retrieveFileContent (Files.id trainingFile)
 
-                    _ <- getV1FilesIdContent (Files.id trainingFile)
+                    _ <- listFiles (Just Files.Fine_Tune) (Just 10000) (Just Files.Asc) Nothing
 
-                    _ <- getV1Files (Just Files.Fine_Tune) (Just 10000) (Just Files.Asc) Nothing
-
-                    job <- postV1FineTuningJobs Jobs.Request
+                    job <- createFineTuningJob Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"
                         , Jobs.training_file = Files.id trainingFile
                         , Jobs.hyperparameters = Just
@@ -347,34 +315,57 @@ main = do
                         , Jobs.seed = Just 0
                         }
 
-                    _ <- getV1FineTuningJobsId (Jobs.id job)
+                    _ <- retrieveFineTuningJob (Jobs.id job)
 
-                    _ <- getV1FineTuningJobs Nothing (Just 20)
+                    _ <- listFineTuningJobs Nothing (Just 20)
 
-                    _ <- getV1FineTuningJobsIdCheckpoints (Jobs.id job) Nothing (Just 10)
+                    _ <- listFineTuningCheckpoints (Jobs.id job) Nothing (Just 10)
 
-                    _ <- postV1FineTuningJobsIdCancel (Jobs.id job)
+                    _ <- cancelFineTuning (Jobs.id job)
 
-                    _ <- getV1FineTuningJobsIdEvents (Jobs.id job) Nothing (Just 20)
+                    _ <- listFineTuningEvents (Jobs.id job) Nothing (Just 20)
 
-                    _ <- deleteV1FilesId (Files.id trainingFile)
-                    _ <- deleteV1FilesId (Files.id validationFile)
+                    _ <- deleteFile (Files.id trainingFile)
+                    _ <- deleteFile (Files.id validationFile)
 
                     return ()
 
-    let v1AudioSpeechTests = do
-            format <- [ minBound .. maxBound ]
-            return (v1AudioSpeechTest format)
+    let batchesTest = do
+            HUnit.testCase "Batch operations" do
+                run do
+                    requestsFile <- uploadFile
+                        ( boundary
+                        , Files.Request
+                            { Files.file =
+                                "tasty/data/v1/batches/requests.jsonl"
+                            , Files.purpose = Files.Batch
+                            }
+                        )
+
+                    batch <- createBatch Batches.Request
+                        { Batches.input_file_id = Files.id requestsFile
+                        , Batches.endpoint = "/v1/chat/completions"
+                        , Batches.completion_window = "24h"
+                        , Batches.metadata = Nothing
+                        }
+
+                    _ <- retrieveBatch (Batches.id batch)
+
+                    _ <- listBatch Nothing (Just 20)
+
+                    _ <- cancelBatch (Batches.id batch)
+
+                    return ()
 
     let tests =
-                v1AudioSpeechTests
-            <>  [ v1AudioTranscriptionsTest
-                , v1AudioTranslationsTest
-                , v1ChatCompletionsMinimalTest
-                , v1ChatCompletionsMaximalTest
-                , v1EmbeddingsTest
-                , v1FineTuningMinimalTest
-                , v1FineTuningMaximalTest
+                speechTests
+            <>  [ transcriptionTest
+                , translationTest
+                , completionsMinimalTest
+                , completionsMaximalTest
+                , embeddingsTest
+                , fineTuningTest
+                , batchesTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

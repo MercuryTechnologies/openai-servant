@@ -30,8 +30,10 @@ library
                         OpenAI.Servant.V1.Audio.Speech
                         OpenAI.Servant.V1.Audio.Transcriptions
                         OpenAI.Servant.V1.Audio.Translations
+                        OpenAI.Servant.V1.Batches
                         OpenAI.Servant.V1.Chat.Completions
                         OpenAI.Servant.V1.Embeddings
+                        OpenAI.Servant.V1.Error
                         OpenAI.Servant.V1.FineTuning.Jobs
                         OpenAI.Servant.V1.Files
                         OpenAI.Servant.V1.ListOf
