@@ -2,7 +2,6 @@
 module OpenAI.Servant.V1.Files.Purpose
     ( -- * API
       Purpose(..)
-    , toText
     ) where
 
 import OpenAI.Servant.Prelude
@@ -27,12 +26,11 @@ instance FromJSON Purpose where
         fix "fine_tune_results" = "fine-tune-results"
         fix string = string
 
--- | Convert a `Purpose` to its equivalent `Text` representation
-toText :: Purpose -> Text
-toText Assistants = "assistants"
-toText Assistants_Output = "assistants"
-toText Batch = "batch"
-toText Batch_Output = "batch_output"
-toText Fine_Tune = "fine-tune"
-toText Fine_Tune_Results = "fine-tune-results"
-toText Vision = "vision"
+instance ToHttpApiData Purpose where
+    toUrlPiece Assistants = "assistants"
+    toUrlPiece Assistants_Output = "assistants"
+    toUrlPiece Batch = "batch"
+    toUrlPiece Batch_Output = "batch_output"
+    toUrlPiece Fine_Tune = "fine-tune"
+    toUrlPiece Fine_Tune_Results = "fine-tune-results"
+    toUrlPiece Vision = "vision"

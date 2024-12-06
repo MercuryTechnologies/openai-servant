@@ -22,6 +22,7 @@ module OpenAI.Servant.Prelude
     , module Numeric.Natural
     , module Servant.API
     , module Servant.Multipart.API
+    , module Web.HttpApiData
     ) where
 
 import Data.ByteString.Lazy (ByteString)
@@ -33,6 +34,7 @@ import Data.Vector (Vector)
 import GHC.Generics (Generic)
 import Data.Word (Word8)
 import Numeric.Natural (Natural)
+import Web.HttpApiData (ToHttpApiData(..))
 
 import Data.Aeson
     ( FromJSON(..)
@@ -46,10 +48,12 @@ import Data.Aeson
 import Servant.API
     ( Accept(..)
     , Capture
+    , Get
     , JSON
     , MimeUnrender(..)
     , OctetStream
     , Post
+    , QueryParam
     , ReqBody
     , (:<|>)(..)
     , (:>)

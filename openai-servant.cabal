@@ -19,6 +19,7 @@ library
                       , bytestring
                       , containers
                       , filepath
+                      , http-api-data
                       , servant
                       , servant-multipart-api
                       , text
@@ -42,6 +43,7 @@ library
                         OpenAI.Servant.V1.Files
                         OpenAI.Servant.V1.Files.File
                         OpenAI.Servant.V1.Files.Purpose
+                        OpenAI.Servant.V1.ListOf
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds
                       , DeriveAnyClass

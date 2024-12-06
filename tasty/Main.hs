@@ -63,7 +63,9 @@ main = do
           :<|>  (     v1FineTuningJobs
                 :<|>  v1FineTuningJobsIdCancel
                 )
-          :<|>  v1Files
+          :<|>  (    postV1Files
+                :<|> getV1Files
+                )
           ) = Client.client (Proxy @V1.API) authorization
 
     let run :: ClientM a -> IO a
@@ -258,7 +260,7 @@ main = do
     let v1FineTuningMinimalTest = do
             HUnit.testCase "/v1/files + /v1/fine_tuning/jobs - minimal" do
                 run do
-                    file <- v1Files
+                    file <- postV1Files
                         ( boundary
                         , Files.Request
                             { Files.file =
@@ -266,6 +268,8 @@ main = do
                             , Files.purpose = Purpose.Fine_Tune
                             }
                         )
+
+                    _ <- getV1Files Nothing Nothing Nothing Nothing
 
                     job <- v1FineTuningJobs Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"
@@ -284,7 +288,7 @@ main = do
     let v1FineTuningMaximalTest = do
             HUnit.testCase "/v1/files + /v1/fine_tuning/jobs - maximal" do
                 run do
-                    trainingFile <- v1Files
+                    trainingFile <- postV1Files
                         ( boundary
                         , Files.Request
                             { Files.file =
@@ -293,7 +297,7 @@ main = do
                             }
                         )
 
-                    validationFile <- v1Files
+                    validationFile <- postV1Files
                         ( boundary
                         , Files.Request
                             { Files.file =
@@ -301,6 +305,8 @@ main = do
                             , Files.purpose = Purpose.Fine_Tune
                             }
                         )
+
+                    _ <- getV1Files (Just Purpose.Fine_Tune) (Just 10000) (Just Files.Asc) Nothing
 
                     job <- v1FineTuningJobs Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"

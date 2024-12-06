@@ -2,14 +2,22 @@
 module OpenAI.Servant.V1.Files
     ( -- * API
       Request(..)
+    , Order(..)
     , API
     ) where
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Files.File
 import OpenAI.Servant.V1.Files.Purpose as Purpose
+import OpenAI.Servant.V1.ListOf
 
 import qualified Data.Text as Text
+
+data Order = Desc | Asc
+
+instance ToHttpApiData Order where
+    toUrlPiece Desc = "desc"
+    toUrlPiece Asc = "asc"
 
 -- | Request body
 data Request = Request
@@ -20,7 +28,7 @@ data Request = Request
 instance ToMultipart Tmp Request where
     toMultipart Request{..} = MultipartData{..}
       where
-        inputs = input "purpose" (Purpose.toText purpose)
+        inputs = input "purpose" (toUrlPiece purpose)
 
         files = [ FileData{..} ]
           where
@@ -30,4 +38,13 @@ instance ToMultipart Tmp Request where
             fdPayload = file
 
 -- | API
-type API = "files" :> MultipartForm Tmp Request :> Post '[JSON] File
+type API =
+        "files"
+    :>  (         MultipartForm Tmp Request
+              :>  Post '[JSON] File
+        :<|>      QueryParam "purpose" Purpose
+              :>  QueryParam "limit" Natural
+              :>  QueryParam "order" Order
+              :>  QueryParam "after" Text
+              :>  Get '[JSON] (ListOf File)
+        )

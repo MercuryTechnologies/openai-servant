@@ -8,6 +8,7 @@ module OpenAI.Servant.V1.Embeddings
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.ListOf
 
 -- | The format to return the embeddings in
 data EncodingFormat = Float | Base64
@@ -38,11 +39,7 @@ instance FromJSON Embedding where
         { fieldLabelModifier = stripPrefix "embedding_" }
 
 -- | Response body
-data Response = Response{ data_ :: Vector Embedding, object :: Text }
-    deriving stock (Generic, Show)
-
-instance FromJSON Response where
-    parseJSON = genericParseJSON aesonOptions
+type Response = ListOf Embedding
 
 -- | API
 type API = "embeddings" :> ReqBody '[JSON] Request :> Post '[JSON] Response
