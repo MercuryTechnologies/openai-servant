@@ -20,7 +20,7 @@
 
           devShells.default = pkgs.haskellPackagesCustom.shellFor {
             packages = hpkgs: [
-              hpkgs.openai-servant
+              (pkgs.haskell.lib.doCheck hpkgs.openai-servant)
             ];
 
             nativeBuildInputs = [
@@ -58,6 +58,7 @@
                 })
 
                 (hself: hsuper: {
+                  openai-servant = hlib.dontCheck hsuper.openai-servant;
                 })
               ];
         });
