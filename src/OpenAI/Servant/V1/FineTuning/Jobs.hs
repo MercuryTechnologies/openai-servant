@@ -63,6 +63,7 @@ instance FromJSON Integration where
 instance ToJSON Integration where
     toJSON = genericToJSON integrationOptions-- | Request body
 
+-- | Request body
 data Request = Request
     { model :: Text
     , training_file :: Text
@@ -129,7 +130,8 @@ instance FromJSON Job where
 
 -- | API
 type API =
-        "jobs"
+        "fine_tuning"
+    :>  "jobs"
     :>  (     ReqBody '[JSON] Request :> Post '[JSON] Job
         :<|>  Capture "fine_tuning_job_id" Text :> "cancel" :> Post '[JSON] Job
         )

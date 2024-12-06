@@ -3,6 +3,7 @@ module OpenAI.Servant.V1.Embeddings
     ( -- * API
       EncodingFormat(..)
     , Request(..)
+    , Embedding(..)
     , Response
     , API
     ) where

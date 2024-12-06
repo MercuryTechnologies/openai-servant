@@ -387,4 +387,5 @@ instance FromJSON Response where
         { fieldLabelModifier = stripPrefix "response_" }
 
 -- | API
-type API = "completions" :> ReqBody '[JSON] Request :> Post '[JSON] Response
+type API =
+    "chat" :> "completions" :> ReqBody '[JSON] Request :> Post '[JSON] Response

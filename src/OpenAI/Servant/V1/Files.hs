@@ -14,6 +14,7 @@ import OpenAI.Servant.V1.ListOf
 
 import qualified Data.Text as Text
 
+-- | Sort order by the `created_at` timestamp of the objects
 data Order = Desc | Asc
 
 instance ToHttpApiData Order where
@@ -80,6 +81,7 @@ instance ToHttpApiData Purpose where
     toUrlPiece Fine_Tune_Results = "fine-tune-results"
     toUrlPiece Vision = "vision"
 
+-- | Deletion status
 data Status = Status
     { status_id :: Text
     , status_object :: Text

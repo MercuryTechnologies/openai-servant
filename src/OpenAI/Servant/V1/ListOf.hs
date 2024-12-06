@@ -1,3 +1,4 @@
+-- | The `ListOf` type constructor
 module OpenAI.Servant.V1.ListOf
     ( -- * Types
       ListOf(..)
