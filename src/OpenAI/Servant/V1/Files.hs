@@ -12,6 +12,7 @@ import OpenAI.Servant.V1.Files.Purpose as Purpose
 import OpenAI.Servant.V1.ListOf
 
 import qualified Data.Text as Text
+import qualified OpenAI.Servant.V1.Files.Id as Id
 
 data Order = Desc | Asc
 
@@ -47,4 +48,5 @@ type API =
               :>  QueryParam "order" Order
               :>  QueryParam "after" Text
               :>  Get '[JSON] (ListOf File)
+        :<|>      Id.API
         )

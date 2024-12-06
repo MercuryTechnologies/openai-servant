@@ -42,6 +42,7 @@ library
                         OpenAI.Servant.V1.FineTuning.Jobs.Job
                         OpenAI.Servant.V1.Files
                         OpenAI.Servant.V1.Files.File
+                        OpenAI.Servant.V1.Files.Id
                         OpenAI.Servant.V1.Files.Purpose
                         OpenAI.Servant.V1.ListOf
     other-modules:      OpenAI.Servant.Prelude

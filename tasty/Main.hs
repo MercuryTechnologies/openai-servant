@@ -54,17 +54,18 @@ main = do
     let user = "openai Haskell package"
     let chatModel = "gpt-4o-mini"
 
-    let (       (     v1AudioSpeech
-                :<|>  v1AudioTranscriptions
-                :<|>  v1AudioTranslations
+    let (       (     postV1AudioSpeech
+                :<|>  postV1AudioTranscriptions
+                :<|>  postV1AudioTranslations
                 )
-          :<|>  v1ChatCompletions
-          :<|>  v1Embeddings
-          :<|>  (     v1FineTuningJobs
-                :<|>  v1FineTuningJobsIdCancel
+          :<|>  postV1ChatCompletions
+          :<|>  postV1Embeddings
+          :<|>  (     postV1FineTuningJobs
+                :<|>  postV1FineTuningJobsIdCancel
                 )
           :<|>  (    postV1Files
                 :<|> getV1Files
+                :<|> getV1FilesId
                 )
           ) = Client.client (Proxy @V1.API) authorization
 
@@ -80,7 +81,7 @@ main = do
     let v1AudioSpeechTest format =
             HUnit.testCase ("/v1/audio/speech - " <> show format) do
                 run do
-                    _ <- v1AudioSpeech Speech.Request
+                    _ <- postV1AudioSpeech Speech.Request
                         { Speech.model = "tts-1"
                         , Speech.input = "Hello, world!"
                         , Speech.voice = Speech.Nova
@@ -93,7 +94,7 @@ main = do
     let v1AudioTranscriptionsTest =
             HUnit.testCase "/v1/audio/transcriptions" do
                 run do
-                    _ <- v1AudioTranscriptions
+                    _ <- postV1AudioTranscriptions
                         ( boundary
                         , Transcriptions.Request
                             { Transcriptions.file =
@@ -114,7 +115,7 @@ main = do
     let v1AudioTranslationsTest =
             HUnit.testCase "/v1/audio/translations" do
                 run do
-                    _ <- v1AudioTranslations
+                    _ <- postV1AudioTranslations
                         ( boundary
                         , Translations.Request
                             { Translations.file =
@@ -133,7 +134,7 @@ main = do
     let v1ChatCompletionsMinimalTest =
             HUnit.testCase "/v1/chat/completions - minimal" do
                 run do
-                    _ <- v1ChatCompletions Completions.Request
+                    _ <- postV1ChatCompletions Completions.Request
                         { Completions.messages =
                             [ Completions.User
                                 { Completions.content = "Hello, world!"
@@ -170,7 +171,7 @@ main = do
     let v1ChatCompletionsMaximalTest =
             HUnit.testCase "/v1/chat/completions - maximal" do
                 run do
-                    _ <- v1ChatCompletions Completions.Request
+                    _ <- postV1ChatCompletions Completions.Request
                         { Completions.messages =
                             [ Completions.User
                                 { Completions.content = "Hello, world!"
@@ -247,7 +248,7 @@ main = do
     let v1EmbeddingsTest = do
             HUnit.testCase "/v1/embeddings" do
                 run do
-                    _ <- v1Embeddings Embeddings.Request
+                    _ <- postV1Embeddings Embeddings.Request
                         { Embeddings.input = "Hello, world!"
                         , Embeddings.model = "text-embedding-3-small"
                         , Embeddings.encoding_format = Just Embeddings.Float
@@ -260,7 +261,7 @@ main = do
     let v1FineTuningMinimalTest = do
             HUnit.testCase "/v1/files + /v1/fine_tuning/jobs - minimal" do
                 run do
-                    file <- postV1Files
+                    trainingFile <- postV1Files
                         ( boundary
                         , Files.Request
                             { Files.file =
@@ -269,11 +270,13 @@ main = do
                             }
                         )
 
+                    _ <- getV1FilesId (File.id trainingFile)
+
                     _ <- getV1Files Nothing Nothing Nothing Nothing
 
-                    job <- v1FineTuningJobs Jobs.Request
+                    job <- postV1FineTuningJobs Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"
-                        , Jobs.training_file = File.id file
+                        , Jobs.training_file = File.id trainingFile
                         , Jobs.hyperparameters = Nothing
                         , Jobs.suffix = Nothing
                         , Jobs.validation_file = Nothing
@@ -281,7 +284,7 @@ main = do
                         , Jobs.seed = Nothing
                         }
 
-                    _ <- v1FineTuningJobsIdCancel (Job.id job)
+                    _ <- postV1FineTuningJobsIdCancel (Job.id job)
 
                     return ()
 
@@ -306,9 +309,11 @@ main = do
                             }
                         )
 
+                    _ <- getV1FilesId (File.id trainingFile)
+
                     _ <- getV1Files (Just Purpose.Fine_Tune) (Just 10000) (Just Files.Asc) Nothing
 
-                    job <- v1FineTuningJobs Jobs.Request
+                    job <- postV1FineTuningJobs Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"
                         , Jobs.training_file = File.id trainingFile
                         , Jobs.hyperparameters = Just
@@ -326,7 +331,7 @@ main = do
                         , Jobs.seed = Just 0
                         }
 
-                    _ <- v1FineTuningJobsIdCancel (Job.id job)
+                    _ <- postV1FineTuningJobsIdCancel (Job.id job)
 
                     return ()
 
