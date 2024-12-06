@@ -48,6 +48,7 @@ import Data.Aeson
 import Servant.API
     ( Accept(..)
     , Capture
+    , Delete
     , Get
     , JSON
     , MimeUnrender(..)

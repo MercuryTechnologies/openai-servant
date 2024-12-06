@@ -65,7 +65,9 @@ main = do
                 )
           :<|>  (    postV1Files
                 :<|> getV1Files
-                :<|> getV1FilesId
+                :<|> (     getV1FilesId
+                     :<|>  deleteV1FilesId
+                     )
                 )
           ) = Client.client (Proxy @V1.API) authorization
 
@@ -286,6 +288,8 @@ main = do
 
                     _ <- postV1FineTuningJobsIdCancel (Job.id job)
 
+                    _ <- deleteV1FilesId (File.id trainingFile)
+
                     return ()
 
     let v1FineTuningMaximalTest = do
@@ -332,6 +336,9 @@ main = do
                         }
 
                     _ <- postV1FineTuningJobsIdCancel (Job.id job)
+
+                    _ <- deleteV1FilesId (File.id trainingFile)
+                    _ <- deleteV1FilesId (File.id validationFile)
 
                     return ()
 
