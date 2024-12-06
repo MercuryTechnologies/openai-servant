@@ -22,6 +22,8 @@ library
                       , http-api-data
                       , servant
                       , servant-multipart-api
+                      , servant-client
+                      , servant-multipart-client
                       , text
                       , time
                       , vector
@@ -47,6 +49,7 @@ library
                       , OverloadedStrings
                       , RecordWildCards
                       , MultiParamTypeClasses
+                      , TypeApplications
                       , TypeOperators
     ghc-options:        -Wall
 
@@ -60,7 +63,6 @@ test-suite tasty
                     , http-client
                     , http-client-tls
                     , openai-servant
-                    , servant
                     , servant-client
                     , servant-multipart-client
                     , tasty

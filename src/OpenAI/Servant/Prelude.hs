@@ -50,12 +50,15 @@ import Servant.API
     , Capture
     , Delete
     , Get
+    , Header'
     , JSON
     , MimeUnrender(..)
     , OctetStream
     , Post
     , QueryParam
     , ReqBody
+    , Required
+    , Strict
     , (:<|>)(..)
     , (:>)
     )

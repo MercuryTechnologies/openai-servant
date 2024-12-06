@@ -2,13 +2,13 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
 
-import Data.Proxy (Proxy(..))
-import Servant.API ((:<|>)(..))
 import Servant.Client (ClientM)
+import OpenAI.Servant.V1 (Methods(..))
 
 import qualified Control.Exception as Exception
 import qualified Data.Text as Text
@@ -51,31 +51,7 @@ main = do
     let user = "openai Haskell package"
     let chatModel = "gpt-4o-mini"
 
-    let (       (     createSpeech
-                :<|>  createTranscription
-                :<|>  createTranslation
-                )
-          :<|>  createChatCompletion
-          :<|>  createEmbeddings
-          :<|>  (     createFineTuningJob
-                :<|>  listFineTuningJobs
-                :<|>  listFineTuningEvents
-                :<|>  listFineTuningCheckpoints
-                :<|>  retrieveFineTuningJob
-                :<|>  cancelFineTuning
-                )
-          :<|>  (     createBatch
-                :<|>  retrieveBatch
-                :<|>  cancelBatch
-                :<|>  listBatch
-                )
-          :<|>  (     uploadFile
-                :<|>  listFiles
-                :<|>  retrieveFile
-                :<|>  deleteFile
-                :<|>  retrieveFileContent
-                )
-          ) = Client.client (Proxy @V1.API) authorization
+    let Methods{..} = V1.getMethods authorization
 
     let run :: ClientM a -> IO a
         run clientM = do
