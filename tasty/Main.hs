@@ -57,6 +57,10 @@ main = do
           :<|>  postV1ChatCompletions
           :<|>  postV1Embeddings
           :<|>  (     postV1FineTuningJobs
+                :<|>  getV1FineTuningJobs
+                :<|>  getV1FineTuningJobsIdEvents
+                :<|>  getV1FineTuningJobsIdCheckpoints
+                :<|>  getV1FineTuningJobsId
                 :<|>  postV1FineTuningJobsIdCancel
                 )
           :<|>  (     postV1Files
@@ -284,7 +288,15 @@ main = do
                         , Jobs.seed = Nothing
                         }
 
+                    _ <- getV1FineTuningJobsId (Jobs.id job)
+
+                    _ <- getV1FineTuningJobs Nothing Nothing
+
+                    _ <- getV1FineTuningJobsIdCheckpoints (Jobs.id job) Nothing Nothing
+
                     _ <- postV1FineTuningJobsIdCancel (Jobs.id job)
+
+                    _ <- getV1FineTuningJobsIdEvents (Jobs.id job) Nothing Nothing
 
                     _ <- deleteV1FilesId (Files.id trainingFile)
 
@@ -335,7 +347,15 @@ main = do
                         , Jobs.seed = Just 0
                         }
 
+                    _ <- getV1FineTuningJobsId (Jobs.id job)
+
+                    _ <- getV1FineTuningJobs Nothing (Just 20)
+
+                    _ <- getV1FineTuningJobsIdCheckpoints (Jobs.id job) Nothing (Just 10)
+
                     _ <- postV1FineTuningJobsIdCancel (Jobs.id job)
+
+                    _ <- getV1FineTuningJobsIdEvents (Jobs.id job) Nothing (Just 20)
 
                     _ <- deleteV1FilesId (Files.id trainingFile)
                     _ <- deleteV1FilesId (Files.id validationFile)

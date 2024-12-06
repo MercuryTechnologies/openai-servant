@@ -6,13 +6,18 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     , WAndB(..)
     , Integration(..)
     , Request(..)
-    , Error(..)
+    , ErrorInformation(..)
     , Status(..)
     , Job(..)
+    , Level(..)
+    , Event(..)
+    , Metrics(..)
+    , Checkpoint(..)
     , API
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.ListOf
 
 -- | A type that can also be the string @\"auto\"@
 data AutoOr a = Auto | Specific a
@@ -79,9 +84,9 @@ data Request = Request
 -- information on the cause of the failure.
 --
 -- NOTE: OpenAPI API's says that the `code` and `message` fields are required,
--- but in practice the `Error` record can be present with all fields omitted,
--- so they are all marked optional (`Maybe`) here
-data Error = Error
+-- but in practice the `ErrorInformation` record can be present with all fields
+-- omitted, so they are all marked optional (`Maybe`) here
+data ErrorInformation = ErrorInformation
     { code :: Maybe Text
     , message :: Maybe Text
     , param :: Maybe Text
@@ -106,7 +111,7 @@ instance FromJSON Status where
 data Job = Job
     { id :: Text
     , created_at :: POSIXTime
-    , error :: Maybe Error
+    , error :: Maybe ErrorInformation
     , fine_tuned_model :: Maybe Text
     , finished_at :: Maybe POSIXTime
     , job_hyperparameters :: Hyperparameters
@@ -128,10 +133,76 @@ instance FromJSON Job where
     parseJSON = genericParseJSON aesonOptions
         { fieldLabelModifier = stripPrefix "job_" }
 
+-- | Log level
+data Level = Info | Warn | Error
+    deriving stock (Generic, Show)
+
+instance FromJSON Level where
+    parseJSON = genericParseJSON aesonOptions
+
+-- | Fine-tuning job event object
+data Event = Event
+    { event_id :: Text
+    , event_created_at :: POSIXTime
+    , level :: Level
+    , event_message :: Text
+    , event_object :: Text
+    } deriving stock (Generic, Show)
+
+instance FromJSON Event where
+    parseJSON = genericParseJSON aesonOptions
+        { fieldLabelModifier = stripPrefix "event_" }
+
+-- | Metrics at the step number during the fine-tuning job.
+data Metrics = Metrics
+    { step :: Double
+    , train_loss :: Double
+    , train_mean_token_accuracy :: Double
+    , valid_loss :: Double
+    , valid_mean_token_accuracy :: Double
+    , full_valid_loss :: Double
+    , full_valid_mean_token_accuracy :: Double
+    } deriving stock (Generic, Show)
+      deriving anyclass (FromJSON)
+
+-- | The @fine_tuning.job.checkpoint@ object represents a model checkpoint for
+-- a fine-tuning job that is ready to use
+data Checkpoint = Checkpoint
+    { checkpoint_id :: Text
+    , checkpoint_created_at :: Text
+    , fine_tuned_model_checkpoint :: Text
+    , step_number :: Natural
+    , metrics :: Metrics
+    , fine_tuning_job_id :: Text
+    , checkpoint_object :: Text
+    } deriving stock (Generic, Show)
+
+instance FromJSON Checkpoint where
+    parseJSON = genericParseJSON aesonOptions
+        { fieldLabelModifier = stripPrefix "checkpoint_" }
+
 -- | API
 type API =
         "fine_tuning"
     :>  "jobs"
-    :>  (     ReqBody '[JSON] Request :> Post '[JSON] Job
-        :<|>  Capture "fine_tuning_job_id" Text :> "cancel" :> Post '[JSON] Job
+    :>  (         ReqBody '[JSON] Request
+              :>  Post '[JSON] Job
+        :<|>      QueryParam "after" Text
+              :>  QueryParam "limit" Natural
+              :>  Get '[JSON] (ListOf Job)
+        :<|>      Capture "fine_tuning_job_id" Text
+              :>  "events"
+              :>  QueryParam "after" Text
+              :>  QueryParam "limit" Natural
+              :>  Get '[JSON] (ListOf Event)
+        :<|>      Capture "fine_tuning_job_id" Text
+              :>  "checkpoints"
+              :>  QueryParam "after" Text
+              :>  QueryParam "limit" Natural
+              :>  Get '[JSON] (ListOf Checkpoint)
+        :<|>      Capture "fine_tuning_job_id" Text
+              :>  Get '[JSON] Job
+        :<|>      Capture "fine_tuning_job_id" Text
+              :>  "cancel"
+              :>  Post '[JSON] Job
         )
