@@ -35,15 +35,7 @@ library
                         OpenAI.Servant.V1.Embeddings
                         OpenAI.Servant.V1.FineTuning
                         OpenAI.Servant.V1.FineTuning.Jobs
-                        OpenAI.Servant.V1.FineTuning.Jobs.Hyperparameters
-                        OpenAI.Servant.V1.FineTuning.Jobs.Id
-                        OpenAI.Servant.V1.FineTuning.Jobs.Id.Cancel
-                        OpenAI.Servant.V1.FineTuning.Jobs.Integration
-                        OpenAI.Servant.V1.FineTuning.Jobs.Job
                         OpenAI.Servant.V1.Files
-                        OpenAI.Servant.V1.Files.File
-                        OpenAI.Servant.V1.Files.Id
-                        OpenAI.Servant.V1.Files.Purpose
                         OpenAI.Servant.V1.ListOf
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds

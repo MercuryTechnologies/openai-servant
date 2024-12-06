@@ -3,16 +3,16 @@ module OpenAI.Servant.V1.Files
     ( -- * API
       Request(..)
     , Order(..)
+    , File(..)
+    , Purpose(..)
+    , Status(..)
     , API
     ) where
 
 import OpenAI.Servant.Prelude
-import OpenAI.Servant.V1.Files.File
-import OpenAI.Servant.V1.Files.Purpose as Purpose
 import OpenAI.Servant.V1.ListOf
 
 import qualified Data.Text as Text
-import qualified OpenAI.Servant.V1.Files.Id as Id
 
 data Order = Desc | Asc
 
@@ -38,6 +38,58 @@ instance ToMultipart Tmp Request where
             fdFileCType = "application/json"
             fdPayload = file
 
+-- | The `File` object represents a document that has been uploaded to OpenAI
+data File = File
+    { id :: Text
+    , bytes :: Natural
+    , created_at :: POSIXTime
+    , filename :: Text
+    , object :: Text
+    , file_purpose :: Purpose
+    } deriving stock (Generic, Show)
+
+instance FromJSON File where
+    parseJSON = genericParseJSON aesonOptions
+        { fieldLabelModifier = stripPrefix "file_" }
+
+-- | The intended purpose of the uploaded file.
+data Purpose
+    = Assistants
+    | Assistants_Output
+    | Batch
+    | Batch_Output
+    | Fine_Tune
+    | Fine_Tune_Results
+    | Vision
+    deriving stock (Generic, Show)
+
+instance FromJSON Purpose where
+    parseJSON = genericParseJSON aesonOptions
+        { constructorTagModifier = fix . labelModifier }
+      where
+        fix "fine_tune" = "fine-tune"
+        fix "fine_tune_results" = "fine-tune-results"
+        fix string = string
+
+instance ToHttpApiData Purpose where
+    toUrlPiece Assistants = "assistants"
+    toUrlPiece Assistants_Output = "assistants"
+    toUrlPiece Batch = "batch"
+    toUrlPiece Batch_Output = "batch_output"
+    toUrlPiece Fine_Tune = "fine-tune"
+    toUrlPiece Fine_Tune_Results = "fine-tune-results"
+    toUrlPiece Vision = "vision"
+
+data Status = Status
+    { status_id :: Text
+    , status_object :: Text
+    , deleted :: Bool
+    } deriving stock (Generic, Show)
+
+instance FromJSON Status where
+    parseJSON = genericParseJSON aesonOptions
+        { fieldLabelModifier = stripPrefix "status_" }
+
 -- | API
 type API =
         "files"
@@ -48,5 +100,11 @@ type API =
               :>  QueryParam "order" Order
               :>  QueryParam "after" Text
               :>  Get '[JSON] (ListOf File)
-        :<|>      Id.API
+        :<|>      Capture "file_id" Text
+              :>  Get '[JSON] File
+        :<|>      Capture "file_id" Text
+              :>  Delete '[JSON] Status
+        :<|>      Capture "file_id" Text
+              :>  "content"
+              :>  Get '[OctetStream] ByteString
         )

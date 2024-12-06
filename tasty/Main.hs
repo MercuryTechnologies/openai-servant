@@ -21,11 +21,7 @@ import qualified OpenAI.Servant.V1.Audio.Translations as Translations
 import qualified OpenAI.Servant.V1.Chat.Completions as Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.Files as Files
-import qualified OpenAI.Servant.V1.Files.File as File
-import qualified OpenAI.Servant.V1.Files.Purpose as Purpose
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
-import qualified OpenAI.Servant.V1.FineTuning.Jobs.Hyperparameters as Hyperparameters
-import qualified OpenAI.Servant.V1.FineTuning.Jobs.Job as Job
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
 import qualified Servant.Multipart.Client as Multipart.Client
@@ -63,11 +59,11 @@ main = do
           :<|>  (     postV1FineTuningJobs
                 :<|>  postV1FineTuningJobsIdCancel
                 )
-          :<|>  (    postV1Files
-                :<|> getV1Files
-                :<|> (     getV1FilesId
-                     :<|>  deleteV1FilesId
-                     )
+          :<|>  (     postV1Files
+                :<|>  getV1Files
+                :<|>  getV1FilesId
+                :<|>  deleteV1FilesId
+                :<|>  getV1FilesIdContent
                 )
           ) = Client.client (Proxy @V1.API) authorization
 
@@ -268,17 +264,19 @@ main = do
                         , Files.Request
                             { Files.file =
                                 "tasty/data/v1/fine_tuning/jobs/training_data.json"
-                            , Files.purpose = Purpose.Fine_Tune
+                            , Files.purpose = Files.Fine_Tune
                             }
                         )
 
-                    _ <- getV1FilesId (File.id trainingFile)
+                    _ <- getV1FilesId (Files.id trainingFile)
+
+                    _ <- getV1FilesIdContent (Files.id trainingFile)
 
                     _ <- getV1Files Nothing Nothing Nothing Nothing
 
                     job <- postV1FineTuningJobs Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"
-                        , Jobs.training_file = File.id trainingFile
+                        , Jobs.training_file = Files.id trainingFile
                         , Jobs.hyperparameters = Nothing
                         , Jobs.suffix = Nothing
                         , Jobs.validation_file = Nothing
@@ -286,9 +284,9 @@ main = do
                         , Jobs.seed = Nothing
                         }
 
-                    _ <- postV1FineTuningJobsIdCancel (Job.id job)
+                    _ <- postV1FineTuningJobsIdCancel (Jobs.id job)
 
-                    _ <- deleteV1FilesId (File.id trainingFile)
+                    _ <- deleteV1FilesId (Files.id trainingFile)
 
                     return ()
 
@@ -300,7 +298,7 @@ main = do
                         , Files.Request
                             { Files.file =
                                 "tasty/data/v1/fine_tuning/jobs/training_data.json"
-                            , Files.purpose = Purpose.Fine_Tune
+                            , Files.purpose = Files.Fine_Tune
                             }
                         )
 
@@ -309,36 +307,38 @@ main = do
                         , Files.Request
                             { Files.file =
                                 "tasty/data/v1/fine_tuning/jobs/validation_data.json"
-                            , Files.purpose = Purpose.Fine_Tune
+                            , Files.purpose = Files.Fine_Tune
                             }
                         )
 
-                    _ <- getV1FilesId (File.id trainingFile)
+                    _ <- getV1FilesId (Files.id trainingFile)
 
-                    _ <- getV1Files (Just Purpose.Fine_Tune) (Just 10000) (Just Files.Asc) Nothing
+                    _ <- getV1FilesIdContent (Files.id trainingFile)
+
+                    _ <- getV1Files (Just Files.Fine_Tune) (Just 10000) (Just Files.Asc) Nothing
 
                     job <- postV1FineTuningJobs Jobs.Request
                         { Jobs.model = "gpt-4o-mini-2024-07-18"
-                        , Jobs.training_file = File.id trainingFile
+                        , Jobs.training_file = Files.id trainingFile
                         , Jobs.hyperparameters = Just
-                              Hyperparameters.Hyperparameters
-                                  { Hyperparameters.batch_size =
-                                      Just Hyperparameters.Auto
-                                  , Hyperparameters.learning_rate_multiplier =
-                                      Just Hyperparameters.Auto
-                                  , Hyperparameters.n_epochs =
-                                      Just Hyperparameters.Auto
+                              Jobs.Hyperparameters
+                                  { Jobs.batch_size =
+                                      Just Jobs.Auto
+                                  , Jobs.learning_rate_multiplier =
+                                      Just Jobs.Auto
+                                  , Jobs.n_epochs =
+                                      Just Jobs.Auto
                                   }
                         , Jobs.suffix = Just "haskell-openai"
-                        , Jobs.validation_file = Just (File.id validationFile)
+                        , Jobs.validation_file = Just (Files.id validationFile)
                         , Jobs.integrations = Just []
                         , Jobs.seed = Just 0
                         }
 
-                    _ <- postV1FineTuningJobsIdCancel (Job.id job)
+                    _ <- postV1FineTuningJobsIdCancel (Jobs.id job)
 
-                    _ <- deleteV1FilesId (File.id trainingFile)
-                    _ <- deleteV1FilesId (File.id validationFile)
+                    _ <- deleteV1FilesId (Files.id trainingFile)
+                    _ <- deleteV1FilesId (Files.id validationFile)
 
                     return ()
 
