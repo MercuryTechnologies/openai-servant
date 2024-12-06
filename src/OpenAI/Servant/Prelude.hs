@@ -17,6 +17,7 @@ module OpenAI.Servant.Prelude
     , module Data.Text
     , module Data.Time.Clock.POSIX
     , module Data.Vector
+    , module Data.Void
     , module Data.Word
     , module GHC.Generics
     , module Numeric.Natural
@@ -31,6 +32,7 @@ import Data.Map (Map)
 import Data.Text (Text)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Vector (Vector)
+import Data.Void (Void)
 import GHC.Generics (Generic)
 import Data.Word (Word8)
 import Numeric.Natural (Natural)

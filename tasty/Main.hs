@@ -23,6 +23,7 @@ import qualified OpenAI.Servant.V1.Chat.Completions as Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
+import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
 import qualified Servant.Multipart.Client as Multipart.Client
@@ -333,6 +334,51 @@ main = do
 
                     return ()
 
+    let uploadsTest = do
+            HUnit.testCase "Upload operations" do
+                run do
+                    upload0 <- createUpload Uploads.CreateUpload
+                        { filename = "training_data.jsonl"
+                        , purpose = Files.Fine_Tune
+                        , bytes = 4077
+                        , mime_type = "text/jsonl"
+                        }
+
+                    _ <- cancelUpload (Uploads.id upload0)
+
+                    upload1 <- createUpload Uploads.CreateUpload
+                        { filename = "training_data.jsonl"
+                        , purpose = Files.Fine_Tune
+                        , bytes = 4077
+                        , mime_type = "text/jsonl"
+                        }
+
+                    part0 <- addUploadPart (Uploads.id upload1)
+                        ( boundary
+                        , Uploads.AddUploadPart
+                            { data_ =
+                                "tasty/data/v1/uploads/training_data0.jsonl"
+                            }
+                        )
+
+                    part1 <- addUploadPart (Uploads.id upload1)
+                        ( boundary
+                        , Uploads.AddUploadPart
+                            { data_ =
+                                "tasty/data/v1/uploads/training_data1.jsonl"
+                            }
+                        )
+
+                    _ <- completeUpload (Uploads.id upload1) Uploads.CompleteUpload
+                        { part_ids =
+                            [ Uploads.part_id part0
+                            , Uploads.part_id part1
+                            ]
+                        , md5 = Nothing
+                        }
+
+                    return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -342,6 +388,7 @@ main = do
                 , embeddingsTest
                 , fineTuningTest
                 , batchesTest
+                , uploadsTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

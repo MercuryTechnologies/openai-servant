@@ -39,12 +39,14 @@ library
                         OpenAI.Servant.V1.FineTuning.Jobs
                         OpenAI.Servant.V1.Files
                         OpenAI.Servant.V1.ListOf
+                        OpenAI.Servant.V1.Uploads
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds
                       , DeriveAnyClass
                       , DeriveGeneric
                       , DerivingStrategies
                       , DuplicateRecordFields
+                      , FlexibleInstances
                       , OverloadedLists
                       , OverloadedStrings
                       , RecordWildCards

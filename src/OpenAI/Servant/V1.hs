@@ -22,6 +22,7 @@ import qualified OpenAI.Servant.V1.Chat.Completions as Chat.Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as FineTuning.Jobs
 import qualified OpenAI.Servant.V1.Files as Files
+import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
 -- | Get a record of API methods after providing an API token
@@ -54,6 +55,11 @@ getMethods authorization = Methods{..}
             :<|>  retrieveFile
             :<|>  deleteFile
             :<|>  retrieveFileContent
+            )
+      :<|>  (     createUpload
+            :<|>  addUploadPart
+            :<|>  completeUpload
+            :<|>  cancelUpload
             )
       ) = Client.client (Proxy @API) authorization
 
@@ -141,6 +147,24 @@ data Methods = Methods
         :: Text
         -- ^ File ID
         -> ClientM ByteString
+    , createUpload
+        :: Uploads.CreateUpload -> ClientM (Uploads.Upload (Maybe Void))
+    , addUploadPart
+        :: Text
+        -- ^ Upload ID
+        -> (ByteString, Uploads.AddUploadPart)
+        -- ^
+        -> ClientM Uploads.Part
+    , completeUpload
+        :: Text
+        -- ^ Upload ID
+        -> Uploads.CompleteUpload
+        -- ^
+        -> ClientM (Uploads.Upload Files.File)
+    , cancelUpload
+        :: Text
+        -- ^ Upload ID
+        -> ClientM (Uploads.Upload (Maybe Void))
     }
 
 -- | API
@@ -153,4 +177,5 @@ type API
         :<|>  FineTuning.Jobs.API
         :<|>  Batches.API
         :<|>  Files.API
+        :<|>  Uploads.API
         )

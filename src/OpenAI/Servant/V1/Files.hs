@@ -64,13 +64,19 @@ data Purpose
     | Vision
     deriving stock (Generic, Show)
 
+purposeOptions :: Options
+purposeOptions = aesonOptions
+    { constructorTagModifier = fix . labelModifier }
+  where
+    fix "fine_tune" = "fine-tune"
+    fix "fine_tune_results" = "fine-tune-results"
+    fix string = string
+
 instance FromJSON Purpose where
-    parseJSON = genericParseJSON aesonOptions
-        { constructorTagModifier = fix . labelModifier }
-      where
-        fix "fine_tune" = "fine-tune"
-        fix "fine_tune_results" = "fine-tune-results"
-        fix string = string
+    parseJSON = genericParseJSON purposeOptions
+
+instance ToJSON Purpose where
+    toJSON = genericToJSON purposeOptions
 
 instance ToHttpApiData Purpose where
     toUrlPiece Assistants = "assistants"
