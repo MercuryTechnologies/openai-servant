@@ -95,6 +95,8 @@ instance FromJSON (Upload File) where
     parseJSON = genericParseJSON aesonOptions
         { fieldLabelModifier = stripPrefix "upload_" }
 
+-- | The upload `Part` represents a chunk of bytes we can add to an `Upload`
+-- object
 data Part = Part
     { part_id :: Text
     , part_created_at :: POSIXTime

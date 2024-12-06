@@ -5,9 +5,12 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TypeApplications  #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Main where
 
 import Servant.Client (ClientM)
+import Control.Monad.IO.Class (liftIO)
 import OpenAI.Servant.V1 (Methods(..))
 
 import qualified Control.Exception as Exception
@@ -23,12 +26,19 @@ import qualified OpenAI.Servant.V1.Chat.Completions as Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
+import qualified OpenAI.Servant.V1.Images.Edits as Edits
+import qualified OpenAI.Servant.V1.Images.Generations as Generations
+import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
+import qualified OpenAI.Servant.V1.Images.Variations as Variations
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
 import qualified Servant.Multipart.Client as Multipart.Client
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as HUnit
+
+instance MonadFail ClientM where
+    fail = liftIO . fail
 
 main :: IO ()
 main = do
@@ -379,6 +389,109 @@ main = do
 
                     return ()
 
+    let createImageMinimalTest = do
+            HUnit.testCase "Create image - minimal" do
+                run do
+                    _ <- createImage Generations.CreateImage
+                        { prompt = "A baby panda"
+                        , model = Nothing
+                        , n = Nothing
+                        , quality = Nothing
+                        , response_format = Nothing
+                        , size = Nothing
+                        , style = Nothing
+                        , user = Nothing
+                        }
+
+                    return ()
+
+    let createImageMaximalTest = do
+            HUnit.testCase "Create image - maximal" do
+                run do
+                    _ <- createImage Generations.CreateImage
+                        { prompt = "A baby panda"
+                        , model = Just "dall-e-2"
+                        , n = Just 1
+                        , quality = Just Generations.Standard
+                        , response_format = Just ResponseFormat.URL
+                        , size = Just "1024x1024"
+                        , style = Just Generations.Vivid
+                        , user = Just user
+                        }
+
+                    return ()
+
+    let createImageEditMinimalTest = do
+            HUnit.testCase "Create image edit - minimal" do
+                run do
+                    _ <- createImageEdit
+                        ( boundary
+                        , Edits.CreateImageEdit
+                            { image = "tasty/data/v1/images/image.png"
+                            , prompt = "The panda should be greener"
+                            , mask = Nothing
+                            , model = Nothing
+                            , n = Nothing
+                            , size = Nothing
+                            , response_format = Nothing
+                            , user = Nothing
+                            }
+                        )
+
+                    return ()
+
+    let createImageEditMaximalTest = do
+            HUnit.testCase "Create image edit - maximal" do
+                run do
+                    _ <- createImageEdit
+                        ( boundary
+                        , Edits.CreateImageEdit
+                            { image = "tasty/data/v1/images/image.png"
+                            , prompt = "The panda should be greener"
+                            , mask = Nothing
+                            , model = Just "dall-e-2"
+                            , n = Just 1
+                            , size = Just "1024x1024"
+                            , response_format = Just ResponseFormat.URL
+                            , user = Just user
+                            }
+                        )
+
+                    return ()
+
+    let createImageVariationMinimalTest = do
+            HUnit.testCase "Create image variation - minimal" do
+                run do
+                    _ <- createImageVariation
+                        ( boundary
+                        , Variations.CreateImageVariation
+                            { image = "tasty/data/v1/images/image.png"
+                            , model = Nothing
+                            , n = Nothing
+                            , response_format = Nothing
+                            , size = Nothing
+                            , user = Nothing
+                            }
+                        )
+                    return ()
+
+    let createImageVariationMaximalTest = do
+            HUnit.testCase "Create image variation - maximal" do
+                run do
+                    _ <- createImageVariation
+                        ( boundary
+                        , Variations.CreateImageVariation
+                            { image = "tasty/data/v1/images/image.png"
+                            , model = Just "dall-e-2"
+                            , n = Just 1
+                            , response_format = Just ResponseFormat.URL
+                            , size = Just "1024x1024"
+                            , user = Just user
+                            }
+                        )
+
+                    return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -389,6 +502,12 @@ main = do
                 , fineTuningTest
                 , batchesTest
                 , uploadsTest
+                , createImageMinimalTest
+                , createImageMaximalTest
+                , createImageEditMinimalTest
+                , createImageEditMaximalTest
+                , createImageVariationMinimalTest
+                , createImageVariationMaximalTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

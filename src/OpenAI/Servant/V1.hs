@@ -22,6 +22,11 @@ import qualified OpenAI.Servant.V1.Chat.Completions as Chat.Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as FineTuning.Jobs
 import qualified OpenAI.Servant.V1.Files as Files
+import qualified OpenAI.Servant.V1.Images as Images
+import qualified OpenAI.Servant.V1.Images.Generations as Generations
+import qualified OpenAI.Servant.V1.Images.Edits as Edits
+import qualified OpenAI.Servant.V1.Images.Image as Image
+import qualified OpenAI.Servant.V1.Images.Variations as Variations
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
@@ -55,6 +60,10 @@ getMethods authorization = Methods{..}
             :<|>  retrieveFile
             :<|>  deleteFile
             :<|>  retrieveFileContent
+            )
+      :<|>  (     createImage
+            :<|>  createImageEdit
+            :<|>  createImageVariation
             )
       :<|>  (     createUpload
             :<|>  addUploadPart
@@ -165,6 +174,13 @@ data Methods = Methods
         :: Text
         -- ^ Upload ID
         -> ClientM (Uploads.Upload (Maybe Void))
+    , createImage
+        :: Generations.CreateImage -> ClientM (ListOf Image.Image)
+    , createImageEdit
+        :: (ByteString, Edits.CreateImageEdit) -> ClientM (ListOf Image.Image)
+    , createImageVariation
+        :: (ByteString, Variations.CreateImageVariation)
+        -> ClientM (ListOf Image.Image)
     }
 
 -- | API
@@ -177,5 +193,6 @@ type API
         :<|>  FineTuning.Jobs.API
         :<|>  Batches.API
         :<|>  Files.API
+        :<|>  Images.API
         :<|>  Uploads.API
         )

@@ -27,7 +27,7 @@ instance ToMultipart Tmp Request where
                 input "model" model
             <>  foldMap (input "prompt") prompt
             <>  input "response_format" "verbose_json"
-            <>  foldMap (input "temperature" . renderDouble) temperature
+            <>  foldMap (input "temperature" . renderRealFloat) temperature
 
         files = [ FileData{..} ]
           where

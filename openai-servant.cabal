@@ -38,6 +38,12 @@ library
                         OpenAI.Servant.V1.Error
                         OpenAI.Servant.V1.FineTuning.Jobs
                         OpenAI.Servant.V1.Files
+                        OpenAI.Servant.V1.Images
+                        OpenAI.Servant.V1.Images.Edits
+                        OpenAI.Servant.V1.Images.Generations
+                        OpenAI.Servant.V1.Images.Image
+                        OpenAI.Servant.V1.Images.ResponseFormat
+                        OpenAI.Servant.V1.Images.Variations
                         OpenAI.Servant.V1.ListOf
                         OpenAI.Servant.V1.Uploads
     other-modules:      OpenAI.Servant.Prelude

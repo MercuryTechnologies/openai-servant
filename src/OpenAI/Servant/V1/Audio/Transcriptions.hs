@@ -30,7 +30,7 @@ instance ToMultipart Tmp Request where
             <>  foldMap (input "language") language
             <>  foldMap (input "prompt") prompt
             <>  input "response_format" "verbose_json"
-            <>  foldMap (input "temperature" . renderDouble) temperature
+            <>  foldMap (input "temperature" . renderRealFloat) temperature
             <>  input "timestamp_granularities[]" "segment"
 
         files = [ FileData{..} ]

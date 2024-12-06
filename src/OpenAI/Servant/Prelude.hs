@@ -6,7 +6,8 @@ module OpenAI.Servant.Prelude
 
       -- * Multipart Form Data
     , input
-    , renderDouble
+    , renderIntegral
+    , renderRealFloat
     , getExtension
 
       -- * Re-exports
@@ -80,6 +81,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.Lazy as Text.Lazy
 import qualified Data.Text.Lazy.Builder as Builder
 import qualified Data.Text.Lazy.Builder.RealFloat as RealFloat
+import qualified Data.Text.Lazy.Builder.Int as Int
 import qualified System.FilePath as FilePath
 
 dropTrailingUnderscore :: String -> String
@@ -107,10 +109,15 @@ aesonOptions = Aeson.defaultOptions
 input :: Text -> Text -> [ Input ]
 input iName iValue = [ Input{..} ]
 
-renderDouble :: Double -> Text
-renderDouble double = Text.Lazy.toStrict (Builder.toLazyText builder)
+renderIntegral :: Integral number => number -> Text
+renderIntegral number = Text.Lazy.toStrict (Builder.toLazyText builder)
   where
-    builder = RealFloat.formatRealFloat RealFloat.Fixed Nothing double
+    builder = Int.decimal number
+
+renderRealFloat :: RealFloat number => number -> Text
+renderRealFloat number = Text.Lazy.toStrict (Builder.toLazyText builder)
+  where
+    builder = RealFloat.formatRealFloat RealFloat.Fixed Nothing number
 
 getExtension :: FilePath -> Text
 getExtension file = Text.pack (drop 1 (FilePath.takeExtension file))
