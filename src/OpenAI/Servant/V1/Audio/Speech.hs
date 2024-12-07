@@ -1,10 +1,12 @@
 -- | @\/v1\/audio\/speech@
 module OpenAI.Servant.V1.Audio.Speech
-    ( -- * API
-      Voice(..)
-    , Format(..)
-    , CreateSpeech(..)
+    ( -- * Main types
+      CreateSpeech(..)
     , _CreateSpeech
+      -- * Other types
+    , Voice(..)
+    , Format(..)
+      -- * Servant
     , ContentType(..)
     , API
     ) where
@@ -61,6 +63,6 @@ instance Accept ContentType where
 instance MimeUnrender ContentType ByteString where
     mimeUnrender _ bytes = Right bytes
 
--- | API
+-- | Servant API
 type API =
     "speech" :> ReqBody '[JSON] CreateSpeech :> Post '[ContentType] ByteString

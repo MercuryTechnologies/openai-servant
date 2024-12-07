@@ -1,18 +1,20 @@
 -- | @\/v1\/fine_tuning/jobs@
 module OpenAI.Servant.V1.FineTuning.Jobs
-    ( -- * API
-      AutoOr(..)
+    ( -- * Main types
+      CreateFineTuningJob(..)
+    , _CreateFineTuningJob
+    , Job(..)
+    , Event(..)
+    , Checkpoint(..)
+      -- * Other types
+    , AutoOr(..)
     , Hyperparameters(..)
     , WAndB(..)
     , Integration(..)
-    , CreateFineTuningJob(..)
-    , _CreateFineTuningJob
     , Status(..)
-    , Job(..)
     , Level(..)
-    , Event(..)
     , Metrics(..)
-    , Checkpoint(..)
+      -- * Servant
     , API
     ) where
 
@@ -169,7 +171,7 @@ data Checkpoint = Checkpoint
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API =
         "fine_tuning"
     :>  "jobs"

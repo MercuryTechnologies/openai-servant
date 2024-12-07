@@ -2,8 +2,12 @@
 --
 -- Streaming results are not yet supported
 module OpenAI.Servant.V1.Chat.Completions
-    ( -- * API
-      AudioData(..)
+    ( -- * Main types
+      CreateChatCompletion(..)
+    , _CreateChatCompletion
+    , ChatCompletion(..)
+      -- * Other types
+    , AudioData(..)
     , CalledFunction(..)
     , ToolCall(..)
     , Message(..)
@@ -18,8 +22,6 @@ module OpenAI.Servant.V1.Chat.Completions
     , CallableFunction(..)
     , Tool(..)
     , ToolChoice(..)
-    , CreateChatCompletion(..)
-    , _CreateChatCompletion
     , FinishReason(..)
     , Token(..)
     , LogProbs(..)
@@ -27,7 +29,7 @@ module OpenAI.Servant.V1.Chat.Completions
     , CompletionTokensDetails(..)
     , PromptTokensDetails(..)
     , Usage(..)
-    , ChatCompletion(..)
+    -- * Servant
     , API
     ) where
 
@@ -360,7 +362,7 @@ data ChatCompletion = ChatCompletion
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API =
         "chat"
     :>  "completions"

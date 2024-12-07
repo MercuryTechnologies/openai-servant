@@ -1,11 +1,13 @@
 -- | @\/v1\/batches@
 module OpenAI.Servant.V1.Batches
-    ( -- * API
+    ( -- * Main types
       CreateBatch(..)
     , _CreateBatch
+    , Batch(..)
+      -- * Other types
     , Status(..)
     , Counts(..)
-    , Batch(..)
+      -- * Servant
     , API
     ) where
 
@@ -78,7 +80,7 @@ data Batch = Batch
 instance FromJSON Batch where
     parseJSON = genericParseJSON aesonOptions
 
--- | API
+-- | Servant API
 type API =
         "batches"
     :>  (         ReqBody '[JSON] CreateBatch

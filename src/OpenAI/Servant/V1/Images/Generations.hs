@@ -1,10 +1,12 @@
 -- | @\/v1\/images\/generations@
 module OpenAI.Servant.V1.Images.Generations
-    ( -- * API
-      Quality(..)
-    , Style(..)
-    , CreateImage(..)
+    ( -- * Main types
+      CreateImage(..)
     , _CreateImage
+      -- * Other types
+    , Quality(..)
+    , Style(..)
+      -- * Servant
     , API
     ) where
 
@@ -54,6 +56,6 @@ _CreateImage = CreateImage
 instance ToJSON CreateImage where
     toJSON = genericToJSON aesonOptions
 
--- | * API
+-- | Servant API
 type API =
     "generations" :> ReqBody '[JSON] CreateImage :> Post '[JSON] (ListOf Image)

@@ -1,9 +1,11 @@
 -- | @\/v1\/images\/edits@
 module OpenAI.Servant.V1.Images.Edits
-    ( -- * API
-      ResponseFormat(..)
-    , CreateImageEdit(..)
+    ( -- * Main types
+      CreateImageEdit(..)
     , _CreateImageEdit
+      -- * Other types
+    , ResponseFormat(..)
+      -- * Servant
     , API
     ) where
 
@@ -66,6 +68,6 @@ instance ToMultipart Tmp CreateImageEdit where
                     fdFileCType = "image/" <> getExtension m
                     fdPayload = m
 
--- | API
+-- | Servant API
 type API =
     "edits" :> MultipartForm Tmp CreateImageEdit :> Post '[JSON] (ListOf Image)

@@ -1,12 +1,14 @@
 -- | @\/v1\/files@
 module OpenAI.Servant.V1.Files
-    ( -- * API
+    ( -- * Main types
       UploadFile(..)
     , _UploadFile
-    , Order(..)
     , File(..)
+    -- * Other types
+    , Order(..)
     , Purpose(..)
     , Status(..)
+    -- * Servant
     , API
     ) where
 
@@ -97,7 +99,7 @@ data Status = Status
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API =
         "files"
     :>  (         MultipartForm Tmp UploadFile

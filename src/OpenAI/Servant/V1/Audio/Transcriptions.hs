@@ -3,11 +3,13 @@
 -- To simplify things, this only supports the @verbose_json@ response format
 -- and also only supports the @segment@ granularity
 module OpenAI.Servant.V1.Audio.Transcriptions
-    ( -- * API
+    ( -- * Main types
       CreateTranscription(..)
     , _CreateTranscription
-    , Segment(..)
     , Transcription(..)
+      -- * Other types
+    , Segment(..)
+      -- * Servant
     , API
     ) where
 
@@ -75,7 +77,7 @@ data Transcription = Transcription
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API =
         "transcriptions"
     :>  MultipartForm Tmp CreateTranscription

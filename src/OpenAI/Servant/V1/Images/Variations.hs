@@ -1,8 +1,9 @@
 -- | @\/v1\/images\/variations@
 module OpenAI.Servant.V1.Images.Variations
-    ( -- * API
+    ( -- * Main types
       CreateImageVariation(..)
-     ,_CreateImageVariation
+    , _CreateImageVariation
+      -- * Servant
     , API
     ) where
 
@@ -50,7 +51,7 @@ instance ToMultipart Tmp CreateImageVariation where
             fdFileCType = "image/" <> getExtension image
             fdPayload = image
 
--- | API
+-- | Servant API
 type API =
         "variations"
     :>  MultipartForm Tmp CreateImageVariation

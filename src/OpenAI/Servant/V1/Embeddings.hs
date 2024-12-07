@@ -1,10 +1,12 @@
 -- | @\/v1\/embeddings@
 module OpenAI.Servant.V1.Embeddings
-    ( -- * API
-      EncodingFormat(..)
-    , CreateEmbeddings(..)
+    ( -- * Main types
+      CreateEmbeddings(..)
     , _CreateEmbeddings
     , Embedding(..)
+      -- * Other types
+    , EncodingFormat(..)
+      -- * Servant
     , API
     ) where
 
@@ -44,7 +46,7 @@ data Embedding = Embbedding
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API =
         "embeddings"
     :>  ReqBody '[JSON] CreateEmbeddings

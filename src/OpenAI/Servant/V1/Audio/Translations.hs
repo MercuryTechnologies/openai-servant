@@ -2,10 +2,11 @@
 --
 -- To simplify things, this only supports the @verbose_json@ response format
 module OpenAI.Servant.V1.Audio.Translations
-    ( -- * API
+    ( -- * Main types
       CreateTranslation(..)
     , _CreateTranslation
     , Translation(..)
+      -- * Servant
     , API
     ) where
 
@@ -51,7 +52,7 @@ data Translation = Translation
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API =
         "translations"
     :>  MultipartForm Tmp CreateTranslation

@@ -3,7 +3,7 @@ module OpenAI.Servant.V1
     ( -- * Methods
       getMethods
     , Methods(..)
-      -- * API
+      -- * Servant
     , API
     ) where
 
@@ -198,7 +198,7 @@ data Methods = Methods
     , createImageVariation :: CreateImageVariation -> ClientM (ListOf Image)
     }
 
--- | API
+-- | Servant API
 type API
     =   Header' [ Required, Strict ] "Authorization" Text
     :>  "v1"

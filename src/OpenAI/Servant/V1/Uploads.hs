@@ -1,16 +1,18 @@
 -- | @\/v1\/uploads@
 {-# LANGUAGE InstanceSigs #-}
 module OpenAI.Servant.V1.Uploads
-    ( -- * API
+    ( -- * Main types
       CreateUpload(..)
     , _CreateUpload
     , AddUploadPart(..)
     , _AddUploadPart
     , CompleteUpload(..)
     , _CompleteUpload
-    , Status(..)
     , Upload(..)
     , Part(..)
+      -- * Other types
+    , Status(..)
+      -- * Servant
     , API
     ) where
 
@@ -117,7 +119,7 @@ data Part = Part
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | API
+-- | Servant API
 type API
     = "uploads"
     :>  (         ReqBody '[JSON] CreateUpload
