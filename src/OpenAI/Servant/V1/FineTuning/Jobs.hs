@@ -101,24 +101,20 @@ data Job = Job
     , error :: Maybe Error
     , fine_tuned_model :: Maybe Text
     , finished_at :: Maybe POSIXTime
-    , job_hyperparameters :: Hyperparameters
-    , job_model :: Text
+    , hyperparameters :: Hyperparameters
+    , model :: Text
     , object :: Text
     , organization_id :: Text
     , result_files :: Vector Text
     , status :: Status
     , trained_tokens :: Maybe Natural
-    , job_training_file :: Text
-    , job_validation_file :: Maybe Text
-    , job_integrations :: Maybe (Vector Integration)
-    , job_seed :: Integer
+    , training_file :: Text
+    , validation_file :: Maybe Text
+    , integrations :: Maybe (Vector Integration)
+    , seed :: Integer
     , estimated_finish :: Maybe POSIXTime
-    }
-    deriving stock (Generic, Show)
-
-instance FromJSON Job where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "job_" }
+    } deriving stock (Generic, Show)
+      deriving anyclass (FromJSON)
 
 -- | Log level
 data Level = Info | Warn | Error
@@ -129,16 +125,13 @@ instance FromJSON Level where
 
 -- | Fine-tuning job event object
 data Event = Event
-    { event_id :: Text
-    , event_created_at :: POSIXTime
+    { id :: Text
+    , created_at :: POSIXTime
     , level :: Level
-    , event_message :: Text
-    , event_object :: Text
+    , message :: Text
+    , object :: Text
     } deriving stock (Generic, Show)
-
-instance FromJSON Event where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "event_" }
+      deriving anyclass (FromJSON)
 
 -- | Metrics at the step number during the fine-tuning job.
 data Metrics = Metrics
@@ -155,18 +148,15 @@ data Metrics = Metrics
 -- | The @fine_tuning.job.checkpoint@ object represents a model checkpoint for
 -- a fine-tuning job that is ready to use
 data Checkpoint = Checkpoint
-    { checkpoint_id :: Text
-    , checkpoint_created_at :: Text
+    { id :: Text
+    , created_at :: Text
     , fine_tuned_model_checkpoint :: Text
     , step_number :: Natural
     , metrics :: Metrics
     , fine_tuning_job_id :: Text
-    , checkpoint_object :: Text
+    , object :: Text
     } deriving stock (Generic, Show)
-
-instance FromJSON Checkpoint where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "checkpoint_" }
+      deriving anyclass (FromJSON)
 
 -- | API
 type API =

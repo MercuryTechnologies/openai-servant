@@ -48,10 +48,10 @@ data Counts = Counts
 data Batch = Batch
     { id :: Text
     , object :: Text
-    , batch_endpoint :: Text
+    , endpoint :: Text
     , errors :: Maybe (ListOf Error)
-    , batch_input_file_id :: Text
-    , batch_completion_window :: Text
+    , input_file_id :: Text
+    , completion_window :: Text
     , status :: Status
     , output_file_id :: Maybe Text
     , error_file_id :: Maybe Text
@@ -65,12 +65,11 @@ data Batch = Batch
     , cancelling_at :: Maybe POSIXTime
     , cancelled_at :: Maybe POSIXTime
     , request_counts :: Maybe Counts
-    , batch_metadata :: Maybe (Map Text Text)
+    , metadata :: Maybe (Map Text Text)
     } deriving stock (Generic, Show)
 
 instance FromJSON Batch where
     parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "batch_" }
 
 -- | API
 type API =

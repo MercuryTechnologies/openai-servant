@@ -31,12 +31,9 @@ data CreateEmbeddings = CreateEmbeddings
 data Embedding = Embbedding
     { index :: Natural
     , embedding :: Vector Double
-    , embedding_object :: Text
+    , object :: Text
     } deriving stock (Generic, Show)
-
-instance FromJSON Embedding where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "embedding_" }
+      deriving anyclass (FromJSON)
 
 -- | API
 type API =

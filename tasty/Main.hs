@@ -26,13 +26,12 @@ import OpenAI.Servant.V1.Chat.Completions
     , CreateChatCompletion(..)
     , Message(..)
     , Modality(..)
-    , ServiceTier(..)
     , Tool(..)
     , ToolCall(..)
     , ToolChoice(..)
     )
 import OpenAI.Servant.V1.FineTuning.Jobs
-    (AutoOr(..), CreateFineTuningJob(..), Hyperparameters(..), Job(..))
+    (CreateFineTuningJob(..), Hyperparameters(..), Job(..))
 import OpenAI.Servant.V1.Images.Generations
     (CreateImage(..), Quality(..), Style(..))
 import OpenAI.Servant.V1.Uploads
@@ -50,6 +49,7 @@ import qualified Network.HTTP.Client.TLS as TLS
 import qualified OpenAI.Servant.V1 as V1
 import qualified OpenAI.Servant.V1.Chat.Completions as Completions
 import qualified OpenAI.Servant.V1.Files as Files
+import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
 import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
 import Prelude hiding (id)
 import qualified Servant.Client as Client
@@ -180,13 +180,11 @@ main = do
                                 , assistant_audio = Nothing
                                 , tool_calls = Just
                                     [ ToolCall_Function
-                                        { called_id =
-                                            "call_bzE95mjMMFqeanfY2sL6Sdir"
-                                        , called_function =
-                                            CalledFunction
-                                              { called_name = "hello"
-                                              , called_arguments = "{}"
-                                              }
+                                        { id = "call_bzE95mjMMFqeanfY2sL6Sdir"
+                                        , function = CalledFunction
+                                          { name = "hello"
+                                          , arguments = "{}"
+                                          }
                                         }
                                     ]
                                 }
@@ -210,20 +208,19 @@ main = do
                         , presence_penalty = Just 0
                         , response_format = Just Completions.ResponseFormat_Text
                         , seed = Just 0
-                        , service_tier = Just ServiceTier_Auto
+                        , service_tier = Just Completions.Auto
                         , stop = Just [ ">>>" ]
                         , temperature = Just 1
                         , top_p = Just 1
                         , tools = Just
                             [ Tool_Function
-                                { callable_function =
-                                    CallableFunction
-                                      { callable_description =
-                                          Just "Use the hello command line tool"
-                                      , callable_name = "hello"
-                                      , parameters = Nothing
-                                      , strict = Just False
-                                      }
+                                { function = CallableFunction
+                                  { description =
+                                      Just "Use the hello command line tool"
+                                  , name = "hello"
+                                  , parameters = Nothing
+                                  , strict = Just False
+                                  }
                                 }
                             ]
                         , tool_choice = Just ToolChoiceAuto
@@ -272,9 +269,9 @@ main = do
                         , training_file = trainingId
                         , hyperparameters = Just
                               Hyperparameters
-                                  { batch_size = Just Auto
-                                  , learning_rate_multiplier = Just Auto
-                                  , n_epochs = Just Auto
+                                  { batch_size = Just Jobs.Auto
+                                  , learning_rate_multiplier = Just Jobs.Auto
+                                  , n_epochs = Just Jobs.Auto
                                   }
                         , suffix = Just "haskell-openai"
                         , validation_file = Just validationId
@@ -339,10 +336,10 @@ main = do
                         , mime_type = "text/jsonl"
                         }
 
-                    Part{ part_id = partId0 } <- addUploadPart id AddUploadPart
+                    Part{ id = partId0 } <- addUploadPart id AddUploadPart
                         { data_ = "tasty/data/v1/uploads/training_data0.jsonl" }
 
-                    Part{ part_id = partId1 } <- addUploadPart id AddUploadPart
+                    Part{ id = partId1 } <- addUploadPart id AddUploadPart
                         { data_ = "tasty/data/v1/uploads/training_data1.jsonl" }
 
                     _ <- completeUpload id CompleteUpload

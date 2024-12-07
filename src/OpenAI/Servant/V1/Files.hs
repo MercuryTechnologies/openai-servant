@@ -46,12 +46,9 @@ data File = File
     , created_at :: POSIXTime
     , filename :: Text
     , object :: Text
-    , file_purpose :: Purpose
+    , purpose :: Purpose
     } deriving stock (Generic, Show)
-
-instance FromJSON File where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "file_" }
+      deriving anyclass (FromJSON)
 
 -- | The intended purpose of the uploaded file.
 data Purpose
@@ -90,13 +87,10 @@ instance ToHttpApiData Purpose where
 -- | Deletion status
 data Status = Status
     { status_id :: Text
-    , status_object :: Text
+    , object :: Text
     , deleted :: Bool
     } deriving stock (Generic, Show)
-
-instance FromJSON Status where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "status_" }
+      deriving anyclass (FromJSON)
 
 -- | API
 type API =

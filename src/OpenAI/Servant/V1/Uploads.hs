@@ -71,12 +71,12 @@ instance FromJSON Status where
 data Upload file = Upload
     { id :: Text
     , created_at :: POSIXTime
-    , upload_filename :: Text
-    , upload_bytes :: Natural
-    , upload_purpose :: Purpose
+    , filename :: Text
+    , bytes :: Natural
+    , purpose :: Purpose
     , status :: Status
     , expires_at :: POSIXTime
-    , upload_object :: Text
+    , object :: Text
     , file :: file
     } deriving stock (Generic, Show)
 
@@ -87,26 +87,18 @@ data Upload file = Upload
 -- … is because that doesn't correctly handle the case where `file = Maybe b`.
 -- Specifically, it doesn't allow the field to be omitted even if the field
 -- can be `Nothing`.  However, adding a concrete instance avoids this issue.
-instance FromJSON (Upload (Maybe Void)) where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "upload_" }
-
-instance FromJSON (Upload File) where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "upload_" }
+instance FromJSON (Upload (Maybe Void))
+instance FromJSON (Upload File)
 
 -- | The upload `Part` represents a chunk of bytes we can add to an `Upload`
 -- object
 data Part = Part
-    { part_id :: Text
-    , part_created_at :: POSIXTime
+    { id :: Text
+    , created_at :: POSIXTime
     , upload_id :: Text
-    , part_object :: Text
+    , object :: Text
     } deriving stock (Generic, Show)
-
-instance FromJSON Part where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "part_" }
+      deriving anyclass (FromJSON)
 
 -- | API
 type API

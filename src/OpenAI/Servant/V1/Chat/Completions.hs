@@ -35,38 +35,19 @@ import Prelude hiding (id)
 
 -- | Data about a previous audio response from the model.
 -- [Learn more](https://platform.openai.com/docs/guides/audio)
-data AudioData = AudioData{ audio_id :: Text }
+data AudioData = AudioData{ id :: Text }
     deriving stock (Generic, Show)
-
-audioDataOptions :: Options
-audioDataOptions = aesonOptions{ fieldLabelModifier = stripPrefix "audio_" }
-
-instance FromJSON AudioData where
-    parseJSON = genericParseJSON audioDataOptions
-
-instance ToJSON AudioData where
-    toJSON = genericToJSON audioDataOptions
+    deriving anyclass (FromJSON, ToJSON)
 
 -- | A called function
-data CalledFunction = CalledFunction
-    { called_name :: Text
-    , called_arguments :: Text
-    } deriving stock (Generic, Show)
-
-calledFunctionOptions :: Options
-calledFunctionOptions = aesonOptions
-    { fieldLabelModifier = stripPrefix "called_" }
-
-instance FromJSON CalledFunction where
-    parseJSON = genericParseJSON calledFunctionOptions
-
-instance ToJSON CalledFunction where
-    toJSON = genericToJSON calledFunctionOptions
+data CalledFunction = CalledFunction{ name :: Text, arguments :: Text }
+    deriving stock (Generic, Show)
+    deriving anyclass (FromJSON, ToJSON)
 
 -- | Tools called by the model
 data ToolCall = ToolCall_Function
-    { called_id :: Text
-    , called_function :: CalledFunction
+    { id :: Text
+    , function :: CalledFunction
     } deriving stock (Generic, Show)
 
 toolCallOptions :: Options
@@ -77,8 +58,6 @@ toolCallOptions = aesonOptions
     , tagSingleConstructors = True
 
     , constructorTagModifier = stripPrefix "ToolCall_"
-
-    , fieldLabelModifier = stripPrefix "called_"
     }
 
 instance ToJSON ToolCall where
@@ -138,7 +117,7 @@ instance ToJSON Modality where
 -- which can greatly improve response times when large parts of the model
 -- response are known ahead of time. This is most common when you are
 -- regenerating a file with only minor changes to most of the content
-data Prediction = Content{ prediction_content :: Text }
+data Prediction = Content{ content :: Text }
     deriving stock (Generic, Show)
 
 instance ToJSON Prediction where
@@ -147,8 +126,6 @@ instance ToJSON Prediction where
             TaggedObject{ tagFieldName = "type", contentsFieldName = "" }
 
         , tagSingleConstructors = True
-
-        , fieldLabelModifier = stripPrefix "prediction_"
         }
 
 -- | The voice the model uses to respond
@@ -177,15 +154,12 @@ data AudioParameters = AudioParameters
 -- schema. Learn more in the
 -- [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs) guide
 data JSONSchema = JSONSchema
-    { schema_description :: Maybe Text
-    , schema_name :: Text
+    { description :: Maybe Text
+    , name :: Text
     , schema :: Maybe Value
-    , schema_strict :: Maybe Bool
+    , strict :: Maybe Bool
     } deriving stock (Generic, Show)
-
-instance ToJSON JSONSchema where
-    toJSON = genericToJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "schema_" }
+      deriving anyclass (ToJSON)
 
 -- | An object specifying the format that the model must output
 data ResponseFormat
@@ -205,34 +179,27 @@ instance ToJSON ResponseFormat where
         }
 
 -- | Specifies the latency tier to use for processing the request
-data ServiceTier = ServiceTier_Auto | ServiceTier_Default
+data ServiceTier = Auto | Default
     deriving stock (Generic, Show)
 
-serviceTierOptions :: Options
-serviceTierOptions = aesonOptions
-    { constructorTagModifier = stripPrefix "ServiceTier_" }
-
 instance FromJSON ServiceTier where
-    parseJSON = genericParseJSON serviceTierOptions
+    parseJSON = genericParseJSON aesonOptions
 
 instance ToJSON ServiceTier where
-    toJSON = genericToJSON serviceTierOptions
+    toJSON = genericToJSON aesonOptions
 
 -- | A callable function
 data CallableFunction = CallableFunction
-    { callable_description :: Maybe Text
-    , callable_name :: Text
+    { description :: Maybe Text
+    , name :: Text
     , parameters :: Maybe Value
     , strict :: Maybe Bool
     } deriving stock (Generic, Show)
-
-instance ToJSON CallableFunction where
-    toJSON = genericToJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "callable_" }
+      deriving anyclass (ToJSON)
 
 -- | Tools callable by the model
 data Tool = Tool_Function
-    { callable_function :: CallableFunction
+    { function :: CallableFunction
     } deriving stock (Generic, Show)
 
 instance ToJSON Tool where
@@ -243,8 +210,6 @@ instance ToJSON Tool where
         , tagSingleConstructors = True
 
         , constructorTagModifier = stripPrefix "Tool_"
-
-        , fieldLabelModifier = stripPrefix "callable_"
         }
 
 -- | Controls which (if any) tool is called by the model
@@ -308,57 +273,41 @@ data Token = Token
     { token :: Text
     , logprob :: Double
     , bytes :: Maybe (Vector Word8)
-    , token_top_logprobs :: Maybe (Vector Token)
+    , top_logprobs :: Maybe (Vector Token)
     } deriving stock (Generic, Show)
-
-instance FromJSON Token where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "token_" }
+      deriving anyclass (FromJSON)
 
 -- | Log probability information for the choice
 data LogProbs = LogProbs
-    { logProbs_content :: Maybe (Vector Token)
-    , logProbs_refusal :: Maybe (Vector Token)
+    { content :: Maybe (Vector Token)
+    , refusal :: Maybe (Vector Token)
     } deriving stock (Generic, Show)
-
-instance FromJSON LogProbs where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "logProbs_"
-        }
+      deriving anyclass (FromJSON)
 
 -- | A chat completion choice
 data Choice = Choice
     { finish_reason :: Text
     , index :: Natural
     , message :: Message
-    , choice_logprobs :: Maybe LogProbs
+    , logprobs :: Maybe LogProbs
     } deriving stock (Generic, Show)
-
-instance FromJSON Choice where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "choice_" }
+      deriving anyclass (FromJSON)
 
 -- | Breakdown of tokens used in a completion
 data CompletionTokensDetails = CompletionTokensDetails
     { accepted_prediction_tokens :: Natural
-    , completion_audio_tokens :: Natural
+    , audio_tokens :: Natural
     , reasoning_tokens :: Natural
     , rejected_prediction_tokens :: Natural
     } deriving stock (Generic, Show)
-
-instance FromJSON CompletionTokensDetails where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "completion_" }
+      deriving anyclass (FromJSON)
 
 -- | Breakdown of tokens used in the prompt
 data PromptTokensDetails = PromptTokensDetails
-    { prompt_audio_tokens :: Natural
+    { audio_tokens :: Natural
     , cached_tokens :: Natural
     } deriving stock (Generic, Show)
-
-instance FromJSON PromptTokensDetails where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "prompt_" }
+      deriving anyclass (FromJSON)
 
 -- | Usage statistics for the completion request
 data Usage = Usage
@@ -375,16 +324,13 @@ data ChatCompletion = ChatCompletion
     { id :: Text
     , choices :: Vector Choice
     , created :: POSIXTime
-    , response_model :: Text
-    , response_service_tier :: Maybe ServiceTier
+    , model :: Text
+    , service_tier :: Maybe ServiceTier
     , system_fingerprint :: Text
     , object :: Text
     , usage :: Usage
     } deriving stock (Generic, Show)
-
-instance FromJSON ChatCompletion where
-    parseJSON = genericParseJSON aesonOptions
-        { fieldLabelModifier = stripPrefix "response_" }
+      deriving anyclass (FromJSON)
 
 -- | API
 type API =
