@@ -20,6 +20,7 @@ library
                       , containers
                       , filepath
                       , http-api-data
+                      , http-client-tls
                       , servant
                       , servant-multipart-api
                       , servant-client
@@ -59,6 +60,7 @@ library
                       , OverloadedStrings
                       , RecordWildCards
                       , MultiParamTypeClasses
+                      , NamedFieldPuns
                       , TypeApplications
                       , TypeOperators
     ghc-options:        -Wall -Wno-missing-fields
@@ -85,7 +87,5 @@ executable openai-servant-example
     main-is:          Main.hs
     build-depends:    base
                     , openai-servant
-                    , http-client-tls
-                    , servant-client
                     , text
     ghc-options:      -Wall

@@ -1,7 +1,8 @@
 -- | @\/v1@
 module OpenAI.Servant.V1
     ( -- * Methods
-      getMethods
+      getClientEnv
+    , makeMethods
     , Methods(..)
       -- * Servant
     , API
@@ -23,7 +24,7 @@ import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
 import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
-import Servant.Client (ClientM)
+import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
 import OpenAI.Servant.V1.Audio.Transcriptions
@@ -33,6 +34,9 @@ import OpenAI.Servant.V1.FineTuning.Jobs
 import OpenAI.Servant.V1.Uploads
     (AddUploadPart, CompleteUpload, CreateUpload, Part, Upload)
 
+import qualified Control.Exception as Exception
+import qualified Data.Text as Text
+import qualified Network.HTTP.Client.TLS as TLS
 import qualified OpenAI.Servant.V1.Audio as Audio
 import qualified OpenAI.Servant.V1.Batches as Batches
 import qualified OpenAI.Servant.V1.Chat.Completions as Chat.Completions
@@ -45,12 +49,24 @@ import qualified OpenAI.Servant.V1.Moderations as Moderations
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
--- | Get a record of API methods after providing an API token
-getMethods
+-- | Convenient utility to get a `ClientEnv` for the most common use case
+getClientEnv
     :: Text
+    -- ^ Base URL for API
+    -> IO ClientEnv
+getClientEnv baseUrlText = do
+    baseUrl <- Client.parseBaseUrl (Text.unpack baseUrlText)
+    manager <- TLS.newTlsManager
+    pure (Client.mkClientEnv manager baseUrl)
+
+-- | Get a record of API methods after providing an API token
+makeMethods
+    :: ClientEnv
+    -- ^
+    -> Text
     -- ^ API token
     -> Methods
-getMethods token = Methods{..}
+makeMethods clientEnv token = Methods{..}
   where
     authorization = "Bearer " <> token
 
@@ -93,7 +109,14 @@ getMethods token = Methods{..}
             )
       :<|>  (     createModeration
             )
-      ) = Client.client (Proxy @API) authorization
+      ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
+
+    run :: Client.ClientM a -> IO a
+    run clientM = do
+        result <- Client.runClientM clientM clientEnv
+        case result of
+            Left exception -> Exception.throwIO exception
+            Right a -> return a
 
     createTranscription a = createTranscription_ (boundary, a)
     createTranslation a = createTranslation_ (boundary, a)
@@ -111,18 +134,18 @@ boundary = "j3qdD3XtDVjvva8IIqoBzHQAYwCenObtPMkxAFnylwFyU5xffWKoYrY"
 
 -- | API methods
 data Methods = Methods
-    { createSpeech :: CreateSpeech -> ClientM ByteString
-    , createTranscription :: CreateTranscription -> ClientM Transcription
-    , createTranslation :: CreateTranslation -> ClientM Translation
-    , createChatCompletion :: CreateChatCompletion -> ClientM ChatCompletion
-    , createEmbeddings :: CreateEmbeddings -> ClientM (ListOf Embedding)
-    , createFineTuningJob :: CreateFineTuningJob -> ClientM Job
+    { createSpeech :: CreateSpeech -> IO ByteString
+    , createTranscription :: CreateTranscription -> IO Transcription
+    , createTranslation :: CreateTranslation -> IO Translation
+    , createChatCompletion :: CreateChatCompletion -> IO ChatCompletion
+    , createEmbeddings :: CreateEmbeddings -> IO (ListOf Embedding)
+    , createFineTuningJob :: CreateFineTuningJob -> IO Job
     , listFineTuningJobs
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf Job)
+        -> IO (ListOf Job)
     , listFineTuningEvents
         :: Text
         -- ^ Job ID
@@ -130,7 +153,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf Event)
+        -> IO (ListOf Event)
     , listFineTuningCheckpoints
         :: Text
         -- ^ Job ID
@@ -138,31 +161,31 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf Checkpoint)
+        -> IO (ListOf Checkpoint)
     , retrieveFineTuningJob
         :: Text
         -- ^ Job ID
-        -> ClientM FineTuning.Jobs.Job
+        -> IO FineTuning.Jobs.Job
     , cancelFineTuning
         :: Text
         -- ^ Job ID
-        -> ClientM FineTuning.Jobs.Job
-    , createBatch :: CreateBatch -> ClientM Batch
+        -> IO FineTuning.Jobs.Job
+    , createBatch :: CreateBatch -> IO Batch
     , retrieveBatch
         :: Text
         -- ^ Batch ID
-        -> ClientM Batch
+        -> IO Batch
     , cancelBatch
         :: Text
         -- ^ Batch ID
-        -> ClientM Batch
+        -> IO Batch
     , listBatch
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf Batch)
-    , uploadFile :: UploadFile -> ClientM File
+        -> IO (ListOf Batch)
+    , uploadFile :: UploadFile -> IO File
     , listFiles
         :: Maybe Files.Purpose
         -- ^
@@ -172,50 +195,50 @@ data Methods = Methods
         -- ^
         -> Maybe Text
         -- ^ after
-        -> ClientM (ListOf File)
+        -> IO (ListOf File)
     , retrieveFile
         :: Text
         -- ^ File ID
-        -> ClientM Files.File
+        -> IO Files.File
     , deleteFile
         :: Text
         -- ^ File ID
-        -> ClientM Status
+        -> IO Status
     , retrieveFileContent
         :: Text
         -- ^ File ID
-        -> ClientM ByteString
+        -> IO ByteString
     , createUpload
-        :: CreateUpload -> ClientM (Upload (Maybe Void))
+        :: CreateUpload -> IO (Upload (Maybe Void))
     , addUploadPart
         :: Text
         -- ^ Upload ID
         -> AddUploadPart
         -- ^
-        -> ClientM Part
+        -> IO Part
     , completeUpload
         :: Text
         -- ^ Upload ID
         -> CompleteUpload
         -- ^
-        -> ClientM (Upload Files.File)
+        -> IO (Upload Files.File)
     , cancelUpload
         :: Text
         -- ^ Upload ID
-        -> ClientM (Upload (Maybe Void))
-    , createImage :: CreateImage -> ClientM (ListOf Image)
-    , createImageEdit :: CreateImageEdit -> ClientM (ListOf Image)
-    , createImageVariation :: CreateImageVariation -> ClientM (ListOf Image)
-    , listModels :: ClientM (ListOf Model)
+        -> IO (Upload (Maybe Void))
+    , createImage :: CreateImage -> IO (ListOf Image)
+    , createImageEdit :: CreateImageEdit -> IO (ListOf Image)
+    , createImageVariation :: CreateImageVariation -> IO (ListOf Image)
+    , listModels :: IO (ListOf Model)
     , retrieveModel
         :: Text
         -- ^ Model ID
-        -> ClientM Model
+        -> IO Model
     , deleteModel
         :: Text
         -- ^ Model ID
-        -> ClientM Models.DeletionStatus
-    , createModeration :: CreateModeration -> ClientM Moderation
+        -> IO Models.DeletionStatus
+    , createModeration :: CreateModeration -> IO Moderation
     }
 
 -- | Servant API

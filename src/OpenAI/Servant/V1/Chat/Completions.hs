@@ -6,11 +6,13 @@ module OpenAI.Servant.V1.Chat.Completions
       CreateChatCompletion(..)
     , _CreateChatCompletion
     , ChatCompletion(..)
+    , Choice(..)
+    , Message(..)
+    , messageToContent
       -- * Other types
     , AudioData(..)
     , CalledFunction(..)
     , ToolCall(..)
-    , Message(..)
     , Modality(..)
     , Prediction(..)
     , Voice(..)
@@ -25,7 +27,6 @@ module OpenAI.Servant.V1.Chat.Completions
     , FinishReason(..)
     , Token(..)
     , LogProbs(..)
-    , Choice(..)
     , CompletionTokensDetails(..)
     , PromptTokensDetails(..)
     , Usage(..)
@@ -107,6 +108,21 @@ instance FromJSON Message where
 
 instance ToJSON Message where
     toJSON = genericToJSON messageOptions
+
+-- | Extract the message body from a `Message`
+--
+-- Normally this would just be the @content@ field selector, but the problem
+-- is that the content field for the `Assistant` constructor is not required
+-- to be present, so we provide a utility function to default to extract the
+-- @content@ field for all constructors, defaulting to @\"\"@ for the special
+-- case where the `Message` is an `Assistant` constructor with a missing
+-- @content@ field
+messageToContent :: Message -> Text
+messageToContent System{ content } = content
+messageToContent User{ content } = content
+messageToContent Assistant{ assistant_content = Just content } = content
+messageToContent Assistant{ assistant_content = Nothing } = ""
+messageToContent Tool{ content } = content
 
 -- | Output types that you would like the model to generate for this request
 data Modality = Text | Audio
