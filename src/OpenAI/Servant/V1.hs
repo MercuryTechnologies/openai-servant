@@ -21,6 +21,8 @@ import OpenAI.Servant.V1.Images.Image (Image)
 import OpenAI.Servant.V1.Images.Generations (CreateImage)
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
+import OpenAI.Servant.V1.Models (Model)
+import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import Servant.Client (ClientM)
 import Servant.Multipart.Client ()
 
@@ -38,6 +40,8 @@ import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as FineTuning.Jobs
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.Images as Images
+import qualified OpenAI.Servant.V1.Models as Models
+import qualified OpenAI.Servant.V1.Moderations as Moderations
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
@@ -82,6 +86,12 @@ getMethods token = Methods{..}
             :<|>  addUploadPart_
             :<|>  completeUpload
             :<|>  cancelUpload
+            )
+      :<|>  (     listModels
+            :<|>  retrieveModel
+            :<|>  deleteModel
+            )
+      :<|>  (     createModeration
             )
       ) = Client.client (Proxy @API) authorization
 
@@ -196,6 +206,16 @@ data Methods = Methods
     , createImage :: CreateImage -> ClientM (ListOf Image)
     , createImageEdit :: CreateImageEdit -> ClientM (ListOf Image)
     , createImageVariation :: CreateImageVariation -> ClientM (ListOf Image)
+    , listModels :: ClientM (ListOf Model)
+    , retrieveModel
+        :: Text
+        -- ^ Model ID
+        -> ClientM Model
+    , deleteModel
+        :: Text
+        -- ^ Model ID
+        -> ClientM Models.DeletionStatus
+    , createModeration :: CreateModeration -> ClientM Moderation
     }
 
 -- | Servant API
@@ -210,4 +230,6 @@ type API
         :<|>  Files.API
         :<|>  Images.API
         :<|>  Uploads.API
+        :<|>  Models.API
+        :<|>  Moderations.API
         )

@@ -19,6 +19,7 @@ import OpenAI.Servant.V1.Embeddings (CreateEmbeddings(..), EncodingFormat(..))
 import OpenAI.Servant.V1.Files (File(..), Order(..), UploadFile(..))
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit(..))
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation(..))
+import OpenAI.Servant.V1.Moderations (CreateModeration(..))
 
 import OpenAI.Servant.V1.Audio.Speech
     (_CreateSpeech, CreateSpeech(..), Voice(..))
@@ -441,6 +442,16 @@ main = do
 
                     return ()
 
+    let createModerationTest = do
+            HUnit.testCase "Create moderation" do
+                run do
+                    _ <- createModeration CreateModeration
+                        { input = "I am going to kill you"
+                        , model = Nothing
+                        }
+
+                    return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -457,6 +468,7 @@ main = do
                 , createImageEditMaximalTest
                 , createImageVariationMinimalTest
                 , createImageVariationMaximalTest
+                , createModerationTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

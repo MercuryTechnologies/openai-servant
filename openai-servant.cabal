@@ -45,6 +45,8 @@ library
                         OpenAI.Servant.V1.Images.ResponseFormat
                         OpenAI.Servant.V1.Images.Variations
                         OpenAI.Servant.V1.ListOf
+                        OpenAI.Servant.V1.Models
+                        OpenAI.Servant.V1.Moderations
                         OpenAI.Servant.V1.Uploads
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds
