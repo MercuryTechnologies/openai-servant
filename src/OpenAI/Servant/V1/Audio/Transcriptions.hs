@@ -4,8 +4,8 @@
 -- and also only supports the @segment@ granularity
 module OpenAI.Servant.V1.Audio.Transcriptions
     ( -- * API
-      Request(..)
-    , Response
+      CreateTranscription(..)
+    , Transcription
     , API
     ) where
 
@@ -13,8 +13,8 @@ import OpenAI.Servant.Prelude as OpenAI.Servant.Prelude
 
 import qualified Data.Text as Text
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/audio\/transcriptions@
+data CreateTranscription = CreateTranscription
     { file :: FilePath
     , model :: Text
     , language :: Maybe Text
@@ -22,8 +22,8 @@ data Request = Request
     , temperature :: Maybe Double
     } deriving stock (Generic, Show)
 
-instance ToMultipart Tmp Request where
-    toMultipart Request{..} = MultipartData{..}
+instance ToMultipart Tmp CreateTranscription where
+    toMultipart CreateTranscription{..} = MultipartData{..}
       where
         inputs =
                 input "model" model
@@ -54,8 +54,9 @@ data Segment = Segment
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | Response body
-data Response = Response
+-- | Represents a verbose json transcription response returned by model, based
+-- on the provided input.
+data Transcription = Transcription
     { language :: Maybe Text
     , duration :: Maybe Double
     , text :: Text
@@ -65,4 +66,6 @@ data Response = Response
 
 -- | API
 type API =
-        "transcriptions" :> MultipartForm Tmp Request :> Post '[JSON] Response
+        "transcriptions"
+    :>  MultipartForm Tmp CreateTranscription
+    :>  Post '[JSON] Transcription

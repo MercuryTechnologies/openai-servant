@@ -11,23 +11,33 @@ import Data.ByteString.Char8 ()
 import Data.Proxy (Proxy(..))
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.ListOf (ListOf)
+import OpenAI.Servant.V1.Audio.Speech (CreateSpeech)
+import OpenAI.Servant.V1.Audio.Translations (CreateTranslation, Translation)
+import OpenAI.Servant.V1.Chat.Completions (ChatCompletion, CreateChatCompletion)
+import OpenAI.Servant.V1.Embeddings (CreateEmbeddings, Embedding)
+import OpenAI.Servant.V1.Batches (CreateBatch, Batch)
+import OpenAI.Servant.V1.Files (File, Status, UploadFile)
+import OpenAI.Servant.V1.Images.Image (Image)
+import OpenAI.Servant.V1.Images.Generations (CreateImage)
+import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
+import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
 import Servant.Client (ClientM)
 import Servant.Multipart.Client ()
 
+import OpenAI.Servant.V1.Audio.Transcriptions
+    (CreateTranscription, Transcription)
+import OpenAI.Servant.V1.FineTuning.Jobs
+    (Checkpoint, CreateFineTuningJob, Event, Job)
+import OpenAI.Servant.V1.Uploads
+    (AddUploadPart, CompleteUpload, CreateUpload, Part, Upload)
+
 import qualified OpenAI.Servant.V1.Audio as Audio
-import qualified OpenAI.Servant.V1.Audio.Speech as Audio.Speech
-import qualified OpenAI.Servant.V1.Audio.Transcriptions as Audio.Transcriptions
-import qualified OpenAI.Servant.V1.Audio.Translations as Audio.Translations
 import qualified OpenAI.Servant.V1.Batches as Batches
 import qualified OpenAI.Servant.V1.Chat.Completions as Chat.Completions
 import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as FineTuning.Jobs
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.Images as Images
-import qualified OpenAI.Servant.V1.Images.Generations as Generations
-import qualified OpenAI.Servant.V1.Images.Edits as Edits
-import qualified OpenAI.Servant.V1.Images.Image as Image
-import qualified OpenAI.Servant.V1.Images.Variations as Variations
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
@@ -89,24 +99,18 @@ boundary = "j3qdD3XtDVjvva8IIqoBzHQAYwCenObtPMkxAFnylwFyU5xffWKoYrY"
 
 -- | API methods
 data Methods = Methods
-    { createSpeech
-        :: Audio.Speech.Request -> ClientM Audio.Speech.Response
-    , createTranscription
-        :: Audio.Transcriptions.Request -> ClientM Audio.Transcriptions.Response
-    , createTranslation
-        :: Audio.Translations.Request -> ClientM Audio.Translations.Response
-    , createChatCompletion
-        :: Chat.Completions.Request -> ClientM Chat.Completions.Response
-    , createEmbeddings
-        :: Embeddings.Request -> ClientM (ListOf Embeddings.Embedding)
-    , createFineTuningJob
-        :: FineTuning.Jobs.Request -> ClientM FineTuning.Jobs.Job
+    { createSpeech :: CreateSpeech -> ClientM ByteString
+    , createTranscription :: CreateTranscription -> ClientM Transcription
+    , createTranslation :: CreateTranslation -> ClientM Translation
+    , createChatCompletion :: CreateChatCompletion -> ClientM ChatCompletion
+    , createEmbeddings :: CreateEmbeddings -> ClientM (ListOf Embedding)
+    , createFineTuningJob :: CreateFineTuningJob -> ClientM Job
     , listFineTuningJobs
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf FineTuning.Jobs.Job)
+        -> ClientM (ListOf Job)
     , listFineTuningEvents
         :: Text
         -- ^ Job ID
@@ -114,7 +118,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf FineTuning.Jobs.Event)
+        -> ClientM (ListOf Event)
     , listFineTuningCheckpoints
         :: Text
         -- ^ Job ID
@@ -122,7 +126,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf FineTuning.Jobs.Checkpoint)
+        -> ClientM (ListOf Checkpoint)
     , retrieveFineTuningJob
         :: Text
         -- ^ Job ID
@@ -131,23 +135,22 @@ data Methods = Methods
         :: Text
         -- ^ Job ID
         -> ClientM FineTuning.Jobs.Job
-    , createBatch
-        :: Batches.Request -> ClientM Batches.Batch
+    , createBatch :: CreateBatch -> ClientM Batch
     , retrieveBatch
         :: Text
         -- ^ Batch ID
-        -> ClientM Batches.Batch
+        -> ClientM Batch
     , cancelBatch
         :: Text
         -- ^ Batch ID
-        -> ClientM Batches.Batch
+        -> ClientM Batch
     , listBatch
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> ClientM (ListOf Batches.Batch)
-    , uploadFile :: Files.Request -> ClientM Files.File
+        -> ClientM (ListOf Batch)
+    , uploadFile :: UploadFile -> ClientM File
     , listFiles
         :: Maybe Files.Purpose
         -- ^
@@ -157,7 +160,7 @@ data Methods = Methods
         -- ^
         -> Maybe Text
         -- ^ after
-        -> ClientM (ListOf Files.File)
+        -> ClientM (ListOf File)
     , retrieveFile
         :: Text
         -- ^ File ID
@@ -165,35 +168,32 @@ data Methods = Methods
     , deleteFile
         :: Text
         -- ^ File ID
-        -> ClientM Files.Status
+        -> ClientM Status
     , retrieveFileContent
         :: Text
         -- ^ File ID
         -> ClientM ByteString
     , createUpload
-        :: Uploads.CreateUpload -> ClientM (Uploads.Upload (Maybe Void))
+        :: CreateUpload -> ClientM (Upload (Maybe Void))
     , addUploadPart
         :: Text
         -- ^ Upload ID
-        -> Uploads.AddUploadPart
+        -> AddUploadPart
         -- ^
-        -> ClientM Uploads.Part
+        -> ClientM Part
     , completeUpload
         :: Text
         -- ^ Upload ID
-        -> Uploads.CompleteUpload
+        -> CompleteUpload
         -- ^
-        -> ClientM (Uploads.Upload Files.File)
+        -> ClientM (Upload Files.File)
     , cancelUpload
         :: Text
         -- ^ Upload ID
-        -> ClientM (Uploads.Upload (Maybe Void))
-    , createImage
-        :: Generations.CreateImage -> ClientM (ListOf Image.Image)
-    , createImageEdit
-        :: Edits.CreateImageEdit -> ClientM (ListOf Image.Image)
-    , createImageVariation
-        :: Variations.CreateImageVariation -> ClientM (ListOf Image.Image)
+        -> ClientM (Upload (Maybe Void))
+    , createImage :: CreateImage -> ClientM (ListOf Image)
+    , createImageEdit :: CreateImageEdit -> ClientM (ListOf Image)
+    , createImageVariation :: CreateImageVariation -> ClientM (ListOf Image)
     }
 
 -- | API

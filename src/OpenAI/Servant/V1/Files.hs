@@ -1,7 +1,7 @@
 -- | @\/v1\/files@
 module OpenAI.Servant.V1.Files
     ( -- * API
-      Request(..)
+      UploadFile(..)
     , Order(..)
     , File(..)
     , Purpose(..)
@@ -21,14 +21,14 @@ instance ToHttpApiData Order where
     toUrlPiece Desc = "desc"
     toUrlPiece Asc = "asc"
 
--- | Request body
-data Request = Request
+-- | UploadFile body
+data UploadFile = UploadFile
     { file :: FilePath
     , purpose :: Purpose
     } deriving stock (Generic, Show)
 
-instance ToMultipart Tmp Request where
-    toMultipart Request{..} = MultipartData{..}
+instance ToMultipart Tmp UploadFile where
+    toMultipart UploadFile{..} = MultipartData{..}
       where
         inputs = input "purpose" (toUrlPiece purpose)
 
@@ -101,7 +101,7 @@ instance FromJSON Status where
 -- | API
 type API =
         "files"
-    :>  (         MultipartForm Tmp Request
+    :>  (         MultipartForm Tmp UploadFile
               :>  Post '[JSON] File
         :<|>      QueryParam "purpose" Purpose
               :>  QueryParam "limit" Natural

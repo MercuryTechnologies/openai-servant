@@ -3,8 +3,8 @@
 -- To simplify things, this only supports the @verbose_json@ response format
 module OpenAI.Servant.V1.Audio.Translations
     ( -- * API
-      Request(..)
-    , Response
+      CreateTranslation(..)
+    , Translation
     , API
     ) where
 
@@ -12,16 +12,16 @@ import OpenAI.Servant.Prelude as OpenAI.Servant.Prelude
 
 import qualified Data.Text as Text
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/audio\/translations@
+data CreateTranslation = CreateTranslation
     { file :: FilePath
     , model :: Text
     , prompt :: Maybe Text
     , temperature :: Maybe Double
     } deriving stock (Generic, Show)
 
-instance ToMultipart Tmp Request where
-    toMultipart Request{..} = MultipartData{..}
+instance ToMultipart Tmp CreateTranslation where
+    toMultipart CreateTranslation{..} = MultipartData{..}
       where
         inputs =
                 input "model" model
@@ -36,12 +36,15 @@ instance ToMultipart Tmp Request where
             fdFileCType = "audio/" <> getExtension file
             fdPayload = file
 
--- | Response body
-data Response = Response
+-- | Represents a transcription response returned by model, based on the
+-- provided input.
+data Translation = Translation
     { text :: Text
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
 -- | API
 type API =
-        "translations" :> MultipartForm Tmp Request :> Post '[JSON] Response
+        "translations"
+    :>  MultipartForm Tmp CreateTranslation
+    :>  Post '[JSON] Translation

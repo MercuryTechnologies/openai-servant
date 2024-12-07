@@ -18,7 +18,7 @@ module OpenAI.Servant.V1.Chat.Completions
     , CallableFunction(..)
     , Tool(..)
     , ToolChoice(..)
-    , Request(..)
+    , CreateChatCompletion(..)
     , FinishReason(..)
     , Token(..)
     , LogProbs(..)
@@ -26,7 +26,7 @@ module OpenAI.Servant.V1.Chat.Completions
     , CompletionTokensDetails(..)
     , PromptTokensDetails(..)
     , Usage(..)
-    , Response
+    , ChatCompletion
     , API
     ) where
 
@@ -261,8 +261,8 @@ instance ToJSON ToolChoice where
     toJSON ToolChoiceRequired = "required"
     toJSON (ToolChoiceTool tool) = toJSON tool
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/chat\/completions@
+data CreateChatCompletion = CreateChatCompletion
     { messages :: Vector Message
     , model :: Text
     , store :: Maybe Bool
@@ -289,7 +289,7 @@ data Request = Request
     , user :: Maybe Text
     } deriving stock (Generic, Show)
 
-instance ToJSON Request where
+instance ToJSON CreateChatCompletion where
     toJSON = genericToJSON aesonOptions
 
 -- | The reason the model stopped generating tokens
@@ -370,8 +370,8 @@ data Usage = Usage
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | Response body
-data Response = Response
+-- | ChatCompletion body
+data ChatCompletion = ChatCompletion
     { id :: Text
     , choices :: Vector Choice
     , created :: POSIXTime
@@ -382,10 +382,13 @@ data Response = Response
     , usage :: Usage
     } deriving stock (Generic, Show)
 
-instance FromJSON Response where
+instance FromJSON ChatCompletion where
     parseJSON = genericParseJSON aesonOptions
         { fieldLabelModifier = stripPrefix "response_" }
 
 -- | API
 type API =
-    "chat" :> "completions" :> ReqBody '[JSON] Request :> Post '[JSON] Response
+        "chat"
+    :>  "completions"
+    :>  ReqBody '[JSON] CreateChatCompletion
+    :>  Post '[JSON] ChatCompletion

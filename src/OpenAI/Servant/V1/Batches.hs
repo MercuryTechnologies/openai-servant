@@ -1,7 +1,7 @@
 -- | @\/v1\/batches@
 module OpenAI.Servant.V1.Batches
     ( -- * API
-      Request(..)
+      CreateBatch(..)
     , Status(..)
     , Counts(..)
     , Batch(..)
@@ -12,8 +12,8 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/batches@
+data CreateBatch = CreateBatch
     { input_file_id :: Text
     , endpoint :: Text
     , completion_window :: Text
@@ -75,7 +75,7 @@ instance FromJSON Batch where
 -- | API
 type API =
         "batches"
-    :>  (         ReqBody '[JSON] Request
+    :>  (         ReqBody '[JSON] CreateBatch
               :>  Post '[JSON] Batch
         :<|>      Capture "batch_id" Text
               :>  Get '[JSON] Batch

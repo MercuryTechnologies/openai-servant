@@ -2,9 +2,8 @@
 module OpenAI.Servant.V1.Embeddings
     ( -- * API
       EncodingFormat(..)
-    , Request(..)
+    , CreateEmbeddings(..)
     , Embedding(..)
-    , Response
     , API
     ) where
 
@@ -18,8 +17,8 @@ data EncodingFormat = Float | Base64
 instance ToJSON EncodingFormat where
     toJSON = genericToJSON aesonOptions
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/embeddings@
+data CreateEmbeddings = CreateEmbeddings
     { input :: Text
     , model :: Text
     , encoding_format :: Maybe EncodingFormat
@@ -39,8 +38,8 @@ instance FromJSON Embedding where
     parseJSON = genericParseJSON aesonOptions
         { fieldLabelModifier = stripPrefix "embedding_" }
 
--- | Response body
-type Response = ListOf Embedding
-
 -- | API
-type API = "embeddings" :> ReqBody '[JSON] Request :> Post '[JSON] Response
+type API =
+        "embeddings"
+    :>  ReqBody '[JSON] CreateEmbeddings
+    :>  Post '[JSON] (ListOf Embedding)

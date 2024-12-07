@@ -5,7 +5,7 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     , Hyperparameters(..)
     , WAndB(..)
     , Integration(..)
-    , Request(..)
+    , CreateFineTuningJob(..)
     , Status(..)
     , Job(..)
     , Level(..)
@@ -66,10 +66,10 @@ instance FromJSON Integration where
     parseJSON = genericParseJSON integrationOptions
 
 instance ToJSON Integration where
-    toJSON = genericToJSON integrationOptions-- | Request body
+    toJSON = genericToJSON integrationOptions-- | CreateFineTuningJob body
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/fine_tuning\/jobs@
+data CreateFineTuningJob = CreateFineTuningJob
     { model :: Text
     , training_file :: Text
     , hyperparameters :: Maybe Hyperparameters
@@ -172,7 +172,7 @@ instance FromJSON Checkpoint where
 type API =
         "fine_tuning"
     :>  "jobs"
-    :>  (         ReqBody '[JSON] Request
+    :>  (         ReqBody '[JSON] CreateFineTuningJob
               :>  Post '[JSON] Job
         :<|>      QueryParam "after" Text
               :>  QueryParam "limit" Natural

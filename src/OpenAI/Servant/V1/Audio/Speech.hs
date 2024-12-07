@@ -3,8 +3,7 @@ module OpenAI.Servant.V1.Audio.Speech
     ( -- * API
       Voice(..)
     , Format(..)
-    , Request(..)
-    , Response
+    , CreateSpeech(..)
     , ContentType(..)
     , API
     ) where
@@ -28,8 +27,8 @@ data Format = MP3 | Opus | AAC | FLAC | WAV | PCM
 instance ToJSON Format where
     toJSON = genericToJSON aesonOptions
 
--- | Request body
-data Request = Request
+-- | Request body for @\/v1\/audio\/speech@
+data CreateSpeech = CreateSpeech
     { model :: Text
     , input :: Text
     , voice :: Voice
@@ -37,9 +36,6 @@ data Request = Request
     , speed :: Maybe Double
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
-
--- | Response body
-type Response = ByteString
 
 -- | Content type
 data ContentType = ContentType
@@ -58,4 +54,5 @@ instance MimeUnrender ContentType ByteString where
     mimeUnrender _ bytes = Right bytes
 
 -- | API
-type API = "speech" :> ReqBody '[JSON] Request :> Post '[ContentType] Response
+type API =
+    "speech" :> ReqBody '[JSON] CreateSpeech :> Post '[ContentType] ByteString
