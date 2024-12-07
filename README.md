@@ -20,7 +20,6 @@ import Servant.Client (ClientM)
 import OpenAI.Servant.V1 (Methods(..))
 
 import OpenAI.Servant.V1.Chat.Completions
-    (ChatCompletion(..), Choice(..), CreateChatCompletion(..), Message(..))
 
 import qualified Control.Exception as Exception
 import qualified Data.Text as Text
@@ -60,31 +59,9 @@ main = do
                 Right a -> return a
 
     run do
-        ChatCompletion{ choices } <- createChatCompletion CreateChatCompletion
+        ChatCompletion{ choices } <- createChatCompletion _CreateChatCompletion
             { messages = [ User{ content = line, name = Nothing } ]
             , model = "gpt-4o-mini"
-            , store = Nothing
-            , metadata = Nothing
-            , frequency_penalty = Nothing
-            , logit_bias = Nothing
-            , logprobs = Nothing
-            , top_logprobs = Nothing
-            , max_completion_tokens = Nothing
-            , n = Nothing
-            , modalities = Nothing
-            , prediction = Nothing
-            , audio = Nothing
-            , presence_penalty = Nothing
-            , response_format = Nothing
-            , seed = Nothing
-            , service_tier = Nothing
-            , stop = Nothing
-            , temperature = Nothing
-            , top_p = Nothing
-            , tools = Nothing
-            , tool_choice = Nothing
-            , parallel_tool_calls = Nothing
-            , user = Nothing
             }
 
         let display Choice{ message } = Text.IO.putStrLn (contents message)
