@@ -11,7 +11,7 @@ module OpenAI.Servant.V1
 import Data.ByteString.Char8 ()
 import Data.Proxy (Proxy(..))
 import OpenAI.Servant.Prelude
-import OpenAI.Servant.V1.ListOf (ListOf)
+import OpenAI.Servant.V1.ListOf (ListOf(..))
 import OpenAI.Servant.V1.Audio.Speech (CreateSpeech)
 import OpenAI.Servant.V1.Audio.Translations (CreateTranslation, Translation)
 import OpenAI.Servant.V1.Chat.Completions (ChatCompletion, CreateChatCompletion)
@@ -75,26 +75,26 @@ makeMethods clientEnv token = Methods{..}
             :<|>  createTranslation_
                     )
       :<|>  createChatCompletion
-      :<|>  createEmbeddings
+      :<|>  createEmbeddings_
       :<|>  (     createFineTuningJob
-            :<|>  listFineTuningJobs
-            :<|>  listFineTuningEvents
-            :<|>  listFineTuningCheckpoints
+            :<|>  listFineTuningJobs_
+            :<|>  listFineTuningEvents_
+            :<|>  listFineTuningCheckpoints_
             :<|>  retrieveFineTuningJob
             :<|>  cancelFineTuning
             )
       :<|>  (     createBatch
             :<|>  retrieveBatch
             :<|>  cancelBatch
-            :<|>  listBatch
+            :<|>  listBatch_
             )
       :<|>  (     uploadFile_
-            :<|>  listFiles
+            :<|>  listFiles_
             :<|>  retrieveFile
             :<|>  deleteFile
             :<|>  retrieveFileContent
             )
-      :<|>  (     createImage
+      :<|>  (     createImage_
             :<|>  createImageEdit_
             :<|>  createImageVariation_
             )
@@ -103,7 +103,7 @@ makeMethods clientEnv token = Methods{..}
             :<|>  completeUpload
             :<|>  cancelUpload
             )
-      :<|>  (     listModels
+      :<|>  (     listModels_
             :<|>  retrieveModel
             :<|>  deleteModel
             )
@@ -118,12 +118,26 @@ makeMethods clientEnv token = Methods{..}
             Left exception -> Exception.throwIO exception
             Right a -> return a
 
+    toVector :: IO (ListOf a) -> IO (Vector a)
+    toVector = fmap adapt
+      where
+        adapt List{ data_ } = data_
+
     createTranscription a = createTranscription_ (boundary, a)
     createTranslation a = createTranslation_ (boundary, a)
+    createEmbeddings a = toVector (createEmbeddings_ a)
+    listFineTuningJobs a b = toVector (listFineTuningJobs_ a b)
+    listFineTuningEvents a b c = toVector (listFineTuningEvents_ a b c)
+    listFineTuningCheckpoints a b c =
+        toVector (listFineTuningCheckpoints_ a b c)
+    listBatch a b = toVector (listBatch_ a b)
     uploadFile a = uploadFile_ (boundary, a)
+    listFiles a b c d = toVector (listFiles_ a b c d)
     addUploadPart a b = addUploadPart_ a (boundary, b)
-    createImageEdit a = createImageEdit_ (boundary, a)
-    createImageVariation a = createImageVariation_ (boundary, a)
+    createImage a = toVector (createImage_ a)
+    createImageEdit a = toVector (createImageEdit_ (boundary, a))
+    createImageVariation a = toVector (createImageVariation_ (boundary, a))
+    listModels = toVector listModels_
 
 -- | Hard-coded boundary to simplify the user-experience
 --
@@ -138,14 +152,14 @@ data Methods = Methods
     , createTranscription :: CreateTranscription -> IO Transcription
     , createTranslation :: CreateTranslation -> IO Translation
     , createChatCompletion :: CreateChatCompletion -> IO ChatCompletion
-    , createEmbeddings :: CreateEmbeddings -> IO (ListOf Embedding)
+    , createEmbeddings :: CreateEmbeddings -> IO (Vector Embedding)
     , createFineTuningJob :: CreateFineTuningJob -> IO Job
     , listFineTuningJobs
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (ListOf Job)
+        -> IO (Vector Job)
     , listFineTuningEvents
         :: Text
         -- ^ Job ID
@@ -153,7 +167,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (ListOf Event)
+        -> IO (Vector Event)
     , listFineTuningCheckpoints
         :: Text
         -- ^ Job ID
@@ -161,7 +175,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (ListOf Checkpoint)
+        -> IO (Vector Checkpoint)
     , retrieveFineTuningJob
         :: Text
         -- ^ Job ID
@@ -184,7 +198,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (ListOf Batch)
+        -> IO (Vector Batch)
     , uploadFile :: UploadFile -> IO File
     , listFiles
         :: Maybe Files.Purpose
@@ -195,7 +209,7 @@ data Methods = Methods
         -- ^
         -> Maybe Text
         -- ^ after
-        -> IO (ListOf File)
+        -> IO (Vector File)
     , retrieveFile
         :: Text
         -- ^ File ID
@@ -226,10 +240,10 @@ data Methods = Methods
         :: Text
         -- ^ Upload ID
         -> IO (Upload (Maybe Void))
-    , createImage :: CreateImage -> IO (ListOf Image)
-    , createImageEdit :: CreateImageEdit -> IO (ListOf Image)
-    , createImageVariation :: CreateImageVariation -> IO (ListOf Image)
-    , listModels :: IO (ListOf Model)
+    , createImage :: CreateImage -> IO (Vector Image)
+    , createImageEdit :: CreateImageEdit -> IO (Vector Image)
+    , createImageVariation :: CreateImageVariation -> IO (Vector Image)
+    , listModels :: IO (Vector Model)
     , retrieveModel
         :: Text
         -- ^ Model ID
