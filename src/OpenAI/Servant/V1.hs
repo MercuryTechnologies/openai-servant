@@ -46,8 +46,10 @@ getMethods
     :: Text
     -- ^ API token
     -> Methods
-getMethods authorization = Methods{..}
+getMethods token = Methods{..}
   where
+    authorization = "Bearer " <> token
+
     (       (     createSpeech
             :<|>  createTranscription_
             :<|>  createTranslation_

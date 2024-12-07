@@ -72,19 +72,17 @@ main = do
 
     key <- Environment.getEnv "OPENAI_KEY"
 
-    let authorization = "Bearer " <> Text.pack key
-
     let user = "openai Haskell package"
     let chatModel = "gpt-4o-mini"
 
-    let Methods{..} = V1.getMethods authorization
+    let Methods{..} = V1.getMethods key
 
     let run :: ClientM a -> IO a
         run clientM = do
             result <- Client.runClientM clientM clientEnv
             case result of
                 Left clientError -> Exception.throwIO clientError
-                Right a          -> return a
+                Right a -> return a
 
     -- Test each format to make sure we're handling each possible content type
     -- correctly

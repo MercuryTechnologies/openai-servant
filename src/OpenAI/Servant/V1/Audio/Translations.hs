@@ -4,7 +4,7 @@
 module OpenAI.Servant.V1.Audio.Translations
     ( -- * API
       CreateTranslation(..)
-    , Translation
+    , Translation(..)
     , API
     ) where
 

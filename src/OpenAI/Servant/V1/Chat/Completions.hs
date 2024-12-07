@@ -26,7 +26,7 @@ module OpenAI.Servant.V1.Chat.Completions
     , CompletionTokensDetails(..)
     , PromptTokensDetails(..)
     , Usage(..)
-    , ChatCompletion
+    , ChatCompletion(..)
     , API
     ) where
 

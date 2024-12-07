@@ -5,7 +5,8 @@
 module OpenAI.Servant.V1.Audio.Transcriptions
     ( -- * API
       CreateTranscription(..)
-    , Transcription
+    , Segment(..)
+    , Transcription(..)
     , API
     ) where
 
@@ -40,6 +41,7 @@ instance ToMultipart Tmp CreateTranscription where
             fdFileCType = "audio/" <> getExtension file
             fdPayload = file
 
+-- | Segment of the transcribed text and its corresponding details
 data Segment = Segment
     { id :: Integer
     , seek :: Integer
