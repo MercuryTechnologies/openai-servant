@@ -4,6 +4,7 @@
 module OpenAI.Servant.V1.Audio.Translations
     ( -- * API
       CreateTranslation(..)
+    , _CreateTranslation
     , Translation(..)
     , API
     ) where
@@ -35,6 +36,13 @@ instance ToMultipart Tmp CreateTranslation where
             fdFileName = Text.pack file
             fdFileCType = "audio/" <> getExtension file
             fdPayload = file
+
+-- | Default `CreateTranslation`
+_CreateTranslation :: CreateTranslation
+_CreateTranslation = CreateTranslation
+    { prompt = Nothing
+    , temperature = Nothing
+    }
 
 -- | Represents a transcription response returned by model, based on the
 -- provided input.

@@ -5,6 +5,7 @@
 module OpenAI.Servant.V1.Audio.Transcriptions
     ( -- * API
       CreateTranscription(..)
+    , _CreateTranscription
     , Segment(..)
     , Transcription(..)
     , API
@@ -40,6 +41,14 @@ instance ToMultipart Tmp CreateTranscription where
             fdFileName = Text.pack file
             fdFileCType = "audio/" <> getExtension file
             fdPayload = file
+
+-- | Default `CreateTranscription`
+_CreateTranscription :: CreateTranscription
+_CreateTranscription = CreateTranscription
+    { language = Nothing
+    , prompt = Nothing
+    , temperature = Nothing
+    }
 
 -- | Segment of the transcribed text and its corresponding details
 data Segment = Segment

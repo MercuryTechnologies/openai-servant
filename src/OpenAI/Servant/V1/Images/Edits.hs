@@ -3,6 +3,7 @@ module OpenAI.Servant.V1.Images.Edits
     ( -- * API
       ResponseFormat(..)
     , CreateImageEdit(..)
+    , _CreateImageEdit
     , API
     ) where
 
@@ -24,6 +25,17 @@ data CreateImageEdit = CreateImageEdit
     , response_format :: Maybe ResponseFormat
     , user :: Maybe Text
     } deriving stock (Generic, Show)
+
+-- | Default `CreateImageEdit`
+_CreateImageEdit :: CreateImageEdit
+_CreateImageEdit = CreateImageEdit
+    { mask = Nothing
+    , model = Nothing
+    , n = Nothing
+    , size = Nothing
+    , response_format = Nothing
+    , user = Nothing
+    }
 
 instance ToMultipart Tmp CreateImageEdit where
     toMultipart CreateImageEdit{..} = MultipartData{..}

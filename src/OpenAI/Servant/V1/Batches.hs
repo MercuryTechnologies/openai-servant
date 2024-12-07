@@ -2,6 +2,7 @@
 module OpenAI.Servant.V1.Batches
     ( -- * API
       CreateBatch(..)
+    , _CreateBatch
     , Status(..)
     , Counts(..)
     , Batch(..)
@@ -20,6 +21,12 @@ data CreateBatch = CreateBatch
     , metadata :: Maybe (Map Text Text)
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
+
+-- | Default `CreateBatch`
+_CreateBatch :: CreateBatch
+_CreateBatch = CreateBatch
+    { metadata = Nothing
+    }
 
 -- | The current status of the batch.
 data Status

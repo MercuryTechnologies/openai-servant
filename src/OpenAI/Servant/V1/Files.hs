@@ -2,6 +2,7 @@
 module OpenAI.Servant.V1.Files
     ( -- * API
       UploadFile(..)
+    , _UploadFile
     , Order(..)
     , File(..)
     , Purpose(..)
@@ -26,6 +27,10 @@ data UploadFile = UploadFile
     { file :: FilePath
     , purpose :: Purpose
     } deriving stock (Generic, Show)
+
+-- | Default `UploadFile`
+_UploadFile :: UploadFile
+_UploadFile = UploadFile{ }
 
 instance ToMultipart Tmp UploadFile where
     toMultipart UploadFile{..} = MultipartData{..}
@@ -86,7 +91,7 @@ instance ToHttpApiData Purpose where
 
 -- | Deletion status
 data Status = Status
-    { status_id :: Text
+    { id :: Text
     , object :: Text
     , deleted :: Bool
     } deriving stock (Generic, Show)

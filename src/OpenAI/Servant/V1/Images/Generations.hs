@@ -4,6 +4,7 @@ module OpenAI.Servant.V1.Images.Generations
       Quality(..)
     , Style(..)
     , CreateImage(..)
+    , _CreateImage
     , API
     ) where
 
@@ -37,6 +38,18 @@ data CreateImage = CreateImage
     , style :: Maybe Style
     , user :: Maybe Text
     } deriving stock (Generic, Show)
+
+-- | Default `CreateImage`
+_CreateImage :: CreateImage
+_CreateImage = CreateImage
+    { model = Nothing
+    , n = Nothing
+    , quality = Nothing
+    , response_format = Nothing
+    , size = Nothing
+    , style = Nothing
+    , user = Nothing
+    }
 
 instance ToJSON CreateImage where
     toJSON = genericToJSON aesonOptions

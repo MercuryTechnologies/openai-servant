@@ -19,6 +19,7 @@ module OpenAI.Servant.V1.Chat.Completions
     , Tool(..)
     , ToolChoice(..)
     , CreateChatCompletion(..)
+    , _CreateChatCompletion
     , FinishReason(..)
     , Token(..)
     , LogProbs(..)
@@ -256,6 +257,33 @@ data CreateChatCompletion = CreateChatCompletion
 
 instance ToJSON CreateChatCompletion where
     toJSON = genericToJSON aesonOptions
+
+-- | Default `CreateChatCompletion`
+_CreateChatCompletion :: CreateChatCompletion
+_CreateChatCompletion = CreateChatCompletion
+    { store = Nothing
+    , metadata = Nothing
+    , frequency_penalty = Nothing
+    , logit_bias = Nothing
+    , logprobs = Nothing
+    , top_logprobs = Nothing
+    , max_completion_tokens = Nothing
+    , n = Nothing
+    , modalities = Nothing
+    , prediction = Nothing
+    , audio = Nothing
+    , presence_penalty = Nothing
+    , response_format = Nothing
+    , seed = Nothing
+    , service_tier = Nothing
+    , stop = Nothing
+    , temperature = Nothing
+    , top_p = Nothing
+    , tools = Nothing
+    , tool_choice = Nothing
+    , parallel_tool_calls = Nothing
+    , user = Nothing
+    }
 
 -- | The reason the model stopped generating tokens
 data FinishReason

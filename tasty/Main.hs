@@ -1,9 +1,10 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedLists   #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE BlockArguments        #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE OverloadedLists       #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeApplications      #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -11,7 +12,6 @@ module Main where
 
 import Servant.Client (ClientM)
 import OpenAI.Servant.V1 (Methods(..))
-import OpenAI.Servant.V1.Audio.Speech (CreateSpeech(..), Voice(..))
 import OpenAI.Servant.V1.Audio.Transcriptions (CreateTranscription(..))
 import OpenAI.Servant.V1.Audio.Translations (CreateTranslation(..))
 import OpenAI.Servant.V1.Batches (Batch(..), CreateBatch(..))
@@ -20,6 +20,8 @@ import OpenAI.Servant.V1.Files (File(..), Order(..), UploadFile(..))
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit(..))
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation(..))
 
+import OpenAI.Servant.V1.Audio.Speech
+    (_CreateSpeech, CreateSpeech(..), Voice(..))
 import OpenAI.Servant.V1.Chat.Completions
     ( CallableFunction(..)
     , CalledFunction(..)
@@ -75,7 +77,7 @@ main = do
     let user = "openai Haskell package"
     let chatModel = "gpt-4o-mini"
 
-    let Methods{..} = V1.getMethods key
+    let Methods{..} = V1.getMethods (Text.pack key)
 
     let run :: ClientM a -> IO a
         run clientM = do
@@ -89,7 +91,7 @@ main = do
     let speechTest format =
             HUnit.testCase ("Create speech - " <> show format) do
                 run do
-                    _ <- createSpeech CreateSpeech
+                    _ <- createSpeech _CreateSpeech
                         { model = "tts-1"
                         , input = "Hello, world!"
                         , voice = Nova

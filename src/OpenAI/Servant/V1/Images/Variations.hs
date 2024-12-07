@@ -2,6 +2,7 @@
 module OpenAI.Servant.V1.Images.Variations
     ( -- * API
       CreateImageVariation(..)
+     ,_CreateImageVariation
     , API
     ) where
 
@@ -21,6 +22,16 @@ data CreateImageVariation = CreateImageVariation
     , size :: Maybe Text
     , user :: Maybe Text
     } deriving stock (Generic, Show)
+
+-- | Default `CreateImageVariation`
+_CreateImageVariation :: CreateImageVariation
+_CreateImageVariation = CreateImageVariation
+    { model = Nothing
+    , n = Nothing
+    , response_format = Nothing
+    , size = Nothing
+    , user = Nothing
+    }
 
 instance ToMultipart Tmp CreateImageVariation where
     toMultipart CreateImageVariation{..} = MultipartData{..}

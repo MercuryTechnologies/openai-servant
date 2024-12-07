@@ -3,6 +3,7 @@ module OpenAI.Servant.V1.Embeddings
     ( -- * API
       EncodingFormat(..)
     , CreateEmbeddings(..)
+    , _CreateEmbeddings
     , Embedding(..)
     , API
     ) where
@@ -26,6 +27,14 @@ data CreateEmbeddings = CreateEmbeddings
     , user :: Maybe Text
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
+
+-- | Default `CreateEmbeddings`
+_CreateEmbeddings :: CreateEmbeddings
+_CreateEmbeddings = CreateEmbeddings
+    { encoding_format = Nothing
+    , dimensions = Nothing
+    , user = Nothing
+    }
 
 -- | The embedding object
 data Embedding = Embbedding

@@ -3,8 +3,11 @@
 module OpenAI.Servant.V1.Uploads
     ( -- * API
       CreateUpload(..)
+    , _CreateUpload
     , AddUploadPart(..)
+    , _AddUploadPart
     , CompleteUpload(..)
+    , _CompleteUpload
     , Status(..)
     , Upload(..)
     , Part(..)
@@ -25,8 +28,16 @@ data CreateUpload = CreateUpload
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
 
+-- | Default `CreateUpload`
+_CreateUpload :: CreateUpload
+_CreateUpload = CreateUpload{ }
+
 -- | Request body for @\/v1\/uploads\/:id\/parts@
 data AddUploadPart = AddUploadPart{ data_ :: FilePath }
+
+-- | Default `AddUploadPart`
+_AddUploadPart :: AddUploadPart
+_AddUploadPart = AddUploadPart{ }
 
 instance ToMultipart Tmp AddUploadPart where
     toMultipart AddUploadPart{..} = MultipartData{..}
@@ -45,6 +56,12 @@ data CompleteUpload = CompleteUpload
     { part_ids :: Vector Text
     , md5 :: Maybe Text
     } deriving stock (Generic, Show)
+
+-- | Default `CompleteUpload`
+_CompleteUpload :: CompleteUpload
+_CompleteUpload = CompleteUpload
+    { md5 = Nothing
+    }
 
 -- OpenAI says that the `md5` field is optional, but what they really mean is
 -- that it can be set to the empty string.  We still model it as `Maybe Text`,

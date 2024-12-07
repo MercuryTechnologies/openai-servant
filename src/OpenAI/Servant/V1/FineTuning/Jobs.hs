@@ -6,6 +6,7 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     , WAndB(..)
     , Integration(..)
     , CreateFineTuningJob(..)
+    , _CreateFineTuningJob
     , Status(..)
     , Job(..)
     , Level(..)
@@ -79,6 +80,16 @@ data CreateFineTuningJob = CreateFineTuningJob
     , seed :: Maybe Integer
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
+
+-- | Default `CreateFineTuningJob`
+_CreateFineTuningJob :: CreateFineTuningJob
+_CreateFineTuningJob = CreateFineTuningJob
+    { hyperparameters = Nothing
+    , suffix = Nothing
+    , validation_file = Nothing
+    , integrations = Nothing
+    , seed = Nothing
+    }
 
 -- | The current status of the fine-tuning job
 data Status

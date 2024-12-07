@@ -4,6 +4,7 @@ module OpenAI.Servant.V1.Audio.Speech
       Voice(..)
     , Format(..)
     , CreateSpeech(..)
+    , _CreateSpeech
     , ContentType(..)
     , API
     ) where
@@ -36,6 +37,13 @@ data CreateSpeech = CreateSpeech
     , speed :: Maybe Double
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
+
+-- | Default `CreateSpeech`
+_CreateSpeech :: CreateSpeech
+_CreateSpeech = CreateSpeech
+    { response_format = Nothing
+    , speed = Nothing
+    }
 
 -- | Content type
 data ContentType = ContentType
