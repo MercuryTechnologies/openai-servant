@@ -11,6 +11,8 @@ module OpenAI.Servant.V1.Chat.Completions
     , messageToContent
     , Content(..)
       -- * Other types
+    , InputAudio(..)
+    , ImageURL(..)
     , AudioData(..)
     , CalledFunction(..)
     , ToolCall(..)
