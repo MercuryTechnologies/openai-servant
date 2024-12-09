@@ -18,7 +18,6 @@ module OpenAI.Servant.V1.Chat.Completions
     , Voice(..)
     , AudioFormat(..)
     , AudioParameters(..)
-    , JSONSchema(..)
     , ResponseFormat(..)
     , ServiceTier(..)
     , CallableFunction(..)
@@ -35,6 +34,7 @@ module OpenAI.Servant.V1.Chat.Completions
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.ResponseFormat
 import Prelude hiding (id)
 
 -- | Data about a previous audio response from the model.
@@ -167,35 +167,6 @@ data AudioParameters = AudioParameters
     , format :: AudioFormat
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
-
--- | Setting to { "type": "json_schema", "json_schema": {...} } enables
--- Structured Outputs which ensures the model will match your supplied JSON
--- schema. Learn more in the
--- [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs) guide
-data JSONSchema = JSONSchema
-    { description :: Maybe Text
-    , name :: Text
-    , schema :: Maybe Value
-    , strict :: Maybe Bool
-    } deriving stock (Generic, Show)
-      deriving anyclass (ToJSON)
-
--- | An object specifying the format that the model must output
-data ResponseFormat
-    = ResponseFormat_Text
-    | JSON_Object
-    | JSON_Schema{ json_schema :: JSONSchema }
-    deriving stock (Generic, Show)
-
-instance ToJSON ResponseFormat where
-    toJSON = genericToJSON aesonOptions
-        { sumEncoding =
-            TaggedObject{ tagFieldName = "type", contentsFieldName = "" }
-
-        , tagSingleConstructors = True
-
-        , constructorTagModifier = stripPrefix "ResponseFormat_"
-        }
 
 -- | Specifies the latency tier to use for processing the request
 data ServiceTier = Auto | Default

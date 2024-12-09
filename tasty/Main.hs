@@ -11,6 +11,7 @@
 module Main where
 
 import OpenAI.Servant.V1 (Methods(..))
+import OpenAI.Servant.V1.Assistants (CreateAssistant(..), ModifyAssistant(..), Assistant(..))
 import OpenAI.Servant.V1.Audio.Transcriptions (CreateTranscription(..))
 import OpenAI.Servant.V1.Audio.Translations (CreateTranslation(..))
 import OpenAI.Servant.V1.Batches (Batch(..), CreateBatch(..))
@@ -49,6 +50,7 @@ import qualified Network.HTTP.Client as HTTP.Client
 import qualified Network.HTTP.Client.TLS as TLS
 import qualified OpenAI.Servant.V1 as V1
 import qualified OpenAI.Servant.V1.Chat.Completions as Completions
+import qualified OpenAI.Servant.V1.Assistants as Assistants
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
 import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
@@ -160,7 +162,7 @@ main = do
                             { content = "Hello, world!"
                             , name = Just "gabby"
                             }
-                        , Assistant
+                        , Completions.Assistant
                             { assistant_content = Nothing
                             , refusal = Nothing
                             , name = Just "Ada"
@@ -427,6 +429,42 @@ main = do
 
                 return ()
 
+    let assistantsTest = do
+            HUnit.testCase "Assistant operations" do
+                Assistants.Assistant{ id } <- createAssistant CreateAssistant
+                    { model = chatModel
+                    , name = Nothing
+                    , description = Nothing
+                    , instructions = Nothing
+                    , tools = Nothing
+                    , tool_resources = Nothing
+                    , metadata = Nothing
+                    , temperature = Nothing
+                    , top_p = Nothing
+                    , response_format = Nothing
+                    }
+
+                _ <- listAssistants Nothing Nothing Nothing Nothing
+
+                _ <- retrieveAssistant id
+
+                _ <- modifyAssistant id ModifyAssistant
+                    { model = chatModel
+                    , name = Nothing
+                    , description = Nothing
+                    , instructions = Nothing
+                    , tools = Nothing
+                    , tool_resources = Nothing
+                    , metadata = Nothing
+                    , temperature = Nothing
+                    , top_p = Nothing
+                    , response_format = Nothing
+                    }
+
+                _ <- deleteAssistant id
+
+                return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -444,6 +482,7 @@ main = do
                 , createImageVariationMinimalTest
                 , createImageVariationMaximalTest
                 , createModerationTest
+                , assistantsTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

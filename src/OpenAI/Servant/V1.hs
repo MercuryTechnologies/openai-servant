@@ -11,22 +11,26 @@ module OpenAI.Servant.V1
 import Data.ByteString.Char8 ()
 import Data.Proxy (Proxy(..))
 import OpenAI.Servant.Prelude
-import OpenAI.Servant.V1.ListOf (ListOf(..))
 import OpenAI.Servant.V1.Audio.Speech (CreateSpeech)
 import OpenAI.Servant.V1.Audio.Translations (CreateTranslation, Translation)
 import OpenAI.Servant.V1.Chat.Completions (ChatCompletion, CreateChatCompletion)
 import OpenAI.Servant.V1.Embeddings (CreateEmbeddings, Embedding)
 import OpenAI.Servant.V1.Batches (CreateBatch, Batch)
-import OpenAI.Servant.V1.Files (File, Status, UploadFile)
+import OpenAI.Servant.V1.DeletionStatus (DeletionStatus)
+import OpenAI.Servant.V1.Files (File, UploadFile)
 import OpenAI.Servant.V1.Images.Image (Image)
 import OpenAI.Servant.V1.Images.Generations (CreateImage)
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
+import OpenAI.Servant.V1.ListOf (ListOf(..))
 import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
+import OpenAI.Servant.V1.Order (Order)
 import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
+import OpenAI.Servant.V1.Assistants
+    (Assistant, CreateAssistant, ModifyAssistant)
 import OpenAI.Servant.V1.Audio.Transcriptions
     (CreateTranscription, Transcription)
 import OpenAI.Servant.V1.FineTuning.Jobs
@@ -37,6 +41,7 @@ import OpenAI.Servant.V1.Uploads
 import qualified Control.Exception as Exception
 import qualified Data.Text as Text
 import qualified Network.HTTP.Client.TLS as TLS
+import qualified OpenAI.Servant.V1.Assistants as Assistants
 import qualified OpenAI.Servant.V1.Audio as Audio
 import qualified OpenAI.Servant.V1.Batches as Batches
 import qualified OpenAI.Servant.V1.Chat.Completions as Chat.Completions
@@ -109,6 +114,14 @@ makeMethods clientEnv token = Methods{..}
             )
       :<|>  (     createModeration
             )
+      :<|>  (   (\x -> x "assistants=v2")
+            ->  (     createAssistant
+                :<|>  listAssistants_
+                :<|>  retrieveAssistant
+                :<|>  modifyAssistant
+                :<|>  deleteAssistant
+                )
+            )
       ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
 
     run :: Client.ClientM a -> IO a
@@ -138,6 +151,7 @@ makeMethods clientEnv token = Methods{..}
     createImageEdit a = toVector (createImageEdit_ (boundary, a))
     createImageVariation a = toVector (createImageVariation_ (boundary, a))
     listModels = toVector listModels_
+    listAssistants a b c d = toVector (listAssistants_ a b c d)
 
 -- | Hard-coded boundary to simplify the user-experience
 --
@@ -205,7 +219,7 @@ data Methods = Methods
         -- ^
         -> Maybe Natural
         -- ^ limit
-        -> Maybe Files.Order
+        -> Maybe Order
         -- ^
         -> Maybe Text
         -- ^ after
@@ -217,7 +231,7 @@ data Methods = Methods
     , deleteFile
         :: Text
         -- ^ File ID
-        -> IO Status
+        -> IO DeletionStatus
     , retrieveFileContent
         :: Text
         -- ^ File ID
@@ -253,6 +267,30 @@ data Methods = Methods
         -- ^ Model ID
         -> IO Models.DeletionStatus
     , createModeration :: CreateModeration -> IO Moderation
+    , createAssistant :: CreateAssistant -> IO Assistant
+    , listAssistants
+        :: Maybe Natural
+        -- ^ limit
+        -> Maybe Order
+        -- ^ order
+        -> Maybe Text
+        -- ^ after
+        -> Maybe Text
+        -- ^ before
+        -> IO (Vector Assistant)
+    , retrieveAssistant
+        :: Text
+        -- ^ Assistant ID
+        -> IO Assistant
+    , modifyAssistant
+        :: Text
+        -- ^ Assistant ID
+        -> ModifyAssistant
+        -> IO Assistant
+    , deleteAssistant
+        :: Text
+        -- ^ Assistant ID
+        -> IO DeletionStatus
     }
 
 -- | Servant API
@@ -269,4 +307,5 @@ type API
         :<|>  Uploads.API
         :<|>  Models.API
         :<|>  Moderations.API
+        :<|>  Assistants.API
         )

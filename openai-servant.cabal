@@ -29,12 +29,15 @@ library
                       , time
                       , vector
     exposed-modules:    OpenAI.Servant.V1
+                        OpenAI.Servant.V1.Assistants
                         OpenAI.Servant.V1.Audio
                         OpenAI.Servant.V1.Audio.Speech
                         OpenAI.Servant.V1.Audio.Transcriptions
                         OpenAI.Servant.V1.Audio.Translations
+                        OpenAI.Servant.V1.AutoOr
                         OpenAI.Servant.V1.Batches
                         OpenAI.Servant.V1.Chat.Completions
+                        OpenAI.Servant.V1.DeletionStatus
                         OpenAI.Servant.V1.Embeddings
                         OpenAI.Servant.V1.Error
                         OpenAI.Servant.V1.FineTuning.Jobs
@@ -47,7 +50,9 @@ library
                         OpenAI.Servant.V1.Images.Variations
                         OpenAI.Servant.V1.ListOf
                         OpenAI.Servant.V1.Models
+                        OpenAI.Servant.V1.Order
                         OpenAI.Servant.V1.Moderations
+                        OpenAI.Servant.V1.ResponseFormat
                         OpenAI.Servant.V1.Uploads
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds
@@ -63,6 +68,7 @@ library
                       , NamedFieldPuns
                       , TypeApplications
                       , TypeOperators
+                      , ViewPatterns
     ghc-options:        -Wall -Wno-missing-fields
 
 test-suite tasty

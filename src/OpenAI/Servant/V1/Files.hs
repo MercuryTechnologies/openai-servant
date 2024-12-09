@@ -7,22 +7,17 @@ module OpenAI.Servant.V1.Files
     -- * Other types
     , Order(..)
     , Purpose(..)
-    , Status(..)
+    , DeletionStatus(..)
     -- * Servant
     , API
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Order
 
 import qualified Data.Text as Text
-
--- | Sort order by the `created_at` timestamp of the objects
-data Order = Desc | Asc
-
-instance ToHttpApiData Order where
-    toUrlPiece Desc = "desc"
-    toUrlPiece Asc = "asc"
 
 -- | UploadFile body
 data UploadFile = UploadFile
@@ -91,14 +86,6 @@ instance ToHttpApiData Purpose where
     toUrlPiece Fine_Tune_Results = "fine-tune-results"
     toUrlPiece Vision = "vision"
 
--- | Deletion status
-data Status = Status
-    { id :: Text
-    , object :: Text
-    , deleted :: Bool
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
-
 -- | Servant API
 type API =
         "files"
@@ -112,7 +99,7 @@ type API =
         :<|>      Capture "file_id" Text
               :>  Get '[JSON] File
         :<|>      Capture "file_id" Text
-              :>  Delete '[JSON] Status
+              :>  Delete '[JSON] DeletionStatus
         :<|>      Capture "file_id" Text
               :>  "content"
               :>  Get '[OctetStream] ByteString
