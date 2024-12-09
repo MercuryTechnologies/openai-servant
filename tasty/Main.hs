@@ -125,7 +125,7 @@ main = do
             HUnit.testCase "Create chat completion - minimal" do
                 _ <- createChatCompletion CreateChatCompletion
                     { messages =
-                        [ User{ content = "Hello, world!", name = Nothing }
+                        [ User{ content = [ "Hello, world!" ], name = Nothing }
                         ]
                     , model = chatModel
                     , store = Nothing
@@ -159,7 +159,7 @@ main = do
                 _ <- createChatCompletion CreateChatCompletion
                     { messages =
                         [ User
-                            { content = "Hello, world!"
+                            { content = [ "Hello, world!" ]
                             , name = Just "gabby"
                             }
                         , Completions.Assistant
@@ -178,7 +178,7 @@ main = do
                                 ]
                             }
                         , Tool
-                            { content = "Hello, world!"
+                            { content = [ "Hello, world!" ]
                             , tool_call_id = "call_bzE95mjMMFqeanfY2sL6Sdir"
                             }
                         ]
@@ -191,7 +191,7 @@ main = do
                     , top_logprobs = Just 1
                     , max_completion_tokens = Just 1024
                     , n = Just 1
-                    , modalities = Just [ Text ]
+                    , modalities = Just [ Modality_Text ]
                     , prediction = Nothing
                     , audio = Nothing
                     , presence_penalty = Just 0

@@ -15,6 +15,7 @@ module OpenAI.Servant.Prelude
     , module Data.ByteString.Lazy
     , module Data.List.NonEmpty
     , module Data.Map
+    , module Data.String
     , module Data.Text
     , module Data.Time.Clock.POSIX
     , module Data.Vector
@@ -35,6 +36,7 @@ import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Vector (Vector)
 import Data.Void (Void)
 import GHC.Generics (Generic)
+import Data.String (IsString(..))
 import Data.Word (Word8)
 import Numeric.Natural (Natural)
 import Web.HttpApiData (ToHttpApiData(..))
