@@ -55,4 +55,4 @@ instance ToMultipart Tmp CreateImageVariation where
 type API =
         "variations"
     :>  MultipartForm Tmp CreateImageVariation
-    :>  Post '[JSON] (ListOf Image)
+    :>  Post '[JSON] (ListOf ImageObject)

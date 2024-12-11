@@ -70,4 +70,6 @@ instance ToMultipart Tmp CreateImageEdit where
 
 -- | Servant API
 type API =
-    "edits" :> MultipartForm Tmp CreateImageEdit :> Post '[JSON] (ListOf Image)
+        "edits"
+    :>  MultipartForm Tmp CreateImageEdit
+    :>  Post '[JSON] (ListOf ImageObject)

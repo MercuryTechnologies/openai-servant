@@ -1,19 +1,18 @@
 -- | @\/v1\/models@
 module OpenAI.Servant.V1.Models
     ( -- * Main types
-      Model(..)
-    , _Model
-    , DeletionStatus(..)
+      ModelObject(..)
 
       -- * Servant
     , API
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.ListOf
 
 -- | Describes an OpenAI model offering that can be used with the API
-data Model = Model
+data ModelObject = ModelObject
     { id :: Text
     , created :: POSIXTime
     , object :: Text
@@ -21,24 +20,12 @@ data Model = Model
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | Default `Model`
-_Model :: Model
-_Model = Model{ }
-
--- | Deletion status
-data DeletionStatus = DeletionStatus
-    { id :: Text
-    , object :: Text
-    , deleted :: Bool
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
-
 -- | Servant API
 type API =
         "models"
-    :>  (         Get '[JSON] (ListOf Model)
+    :>  (         Get '[JSON] (ListOf ModelObject)
         :<|>      Capture "model" Text
-              :>  Get '[JSON] Model
+              :>  Get '[JSON] ModelObject
         :<|>      Capture "model" Text
               :>  Delete '[JSON] DeletionStatus
         )

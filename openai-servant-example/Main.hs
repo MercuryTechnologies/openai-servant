@@ -23,7 +23,7 @@ main = do
 
     text <- Text.IO.getLine
 
-    ChatCompletion{ choices } <- createChatCompletion _CreateChatCompletion
+    ChatCompletionObject{ choices } <- createChatCompletion _CreateChatCompletion
         { messages = [ User{ content = [ Text{ text } ], name = Nothing } ]
         , model = "gpt-4o-mini"
         }

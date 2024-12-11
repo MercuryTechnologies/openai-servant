@@ -11,16 +11,17 @@
 module Main where
 
 import OpenAI.Servant.V1 (Methods(..))
-import OpenAI.Servant.V1.Assistants (CreateAssistant(..), ModifyAssistant(..), Assistant(..))
 import OpenAI.Servant.V1.Audio.Transcriptions (CreateTranscription(..))
 import OpenAI.Servant.V1.Audio.Translations (CreateTranslation(..))
-import OpenAI.Servant.V1.Batches (Batch(..), CreateBatch(..))
+import OpenAI.Servant.V1.Batches (BatchObject(..), CreateBatch(..))
 import OpenAI.Servant.V1.Embeddings (CreateEmbeddings(..), EncodingFormat(..))
-import OpenAI.Servant.V1.Files (File(..), Order(..), UploadFile(..))
+import OpenAI.Servant.V1.Files (FileObject(..), Order(..), UploadFile(..))
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit(..))
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation(..))
 import OpenAI.Servant.V1.Moderations (CreateModeration(..))
 
+import OpenAI.Servant.V1.Assistants
+    (CreateAssistant(..), ModifyAssistant(..), Assistant(..))
 import OpenAI.Servant.V1.Audio.Speech
     (_CreateSpeech, CreateSpeech(..), Voice(..))
 import OpenAI.Servant.V1.Chat.Completions
@@ -34,7 +35,7 @@ import OpenAI.Servant.V1.Chat.Completions
     , ToolChoice(..)
     )
 import OpenAI.Servant.V1.FineTuning.Jobs
-    (CreateFineTuningJob(..), Hyperparameters(..), Job(..))
+    (CreateFineTuningJob(..), Hyperparameters(..), JobObject(..))
 import OpenAI.Servant.V1.Images.Generations
     (CreateImage(..), Quality(..), Style(..))
 import OpenAI.Servant.V1.Threads
@@ -43,8 +44,8 @@ import OpenAI.Servant.V1.Uploads
     ( AddUploadPart(..)
     , CompleteUpload(..)
     , CreateUpload(..)
-    , Part(..)
-    , Upload(..)
+    , PartObject(..)
+    , UploadObject(..)
     )
 
 import qualified Data.Text as Text
@@ -237,13 +238,13 @@ main = do
 
     let fineTuningTest = do
             HUnit.testCase "Fine-tuning and File operations - maximal" do
-                File{ id = trainingId }<- uploadFile UploadFile
+                FileObject{ id = trainingId }<- uploadFile UploadFile
                     { file =
                         "tasty/data/v1/fine_tuning/jobs/training_data.jsonl"
                     , purpose = Files.Fine_Tune
                     }
 
-                File{ id = validationId } <- uploadFile UploadFile
+                FileObject{ id = validationId } <- uploadFile UploadFile
                     { file =
                         "tasty/data/v1/fine_tuning/jobs/validation_data.jsonl"
                     , purpose = Files.Fine_Tune
@@ -255,7 +256,7 @@ main = do
 
                 _ <- listFiles (Just Files.Fine_Tune) (Just 10000) (Just Asc) Nothing
 
-                Job{ id } <- createFineTuningJob CreateFineTuningJob
+                JobObject{ id } <- createFineTuningJob CreateFineTuningJob
                     { model = "gpt-4o-mini-2024-07-18"
                     , training_file = trainingId
                     , hyperparameters = Just
@@ -287,12 +288,12 @@ main = do
 
     let batchesTest = do
             HUnit.testCase "Batch operations" do
-                File{ id = requestsId } <- uploadFile UploadFile
+                FileObject{ id = requestsId } <- uploadFile UploadFile
                     { file = "tasty/data/v1/batches/requests.jsonl"
                     , purpose = Files.Batch
                     }
 
-                Batch{ id } <- createBatch CreateBatch
+                BatchObject{ id } <- createBatch CreateBatch
                     { input_file_id = requestsId
                     , endpoint = "/v1/chat/completions"
                     , completion_window = "24h"
@@ -309,7 +310,7 @@ main = do
 
     let uploadsTest = do
             HUnit.testCase "Upload operations" do
-                Upload{ id = cancelledId } <- createUpload CreateUpload
+                UploadObject{ id = cancelledId } <- createUpload CreateUpload
                     { filename = "training_data.jsonl"
                     , purpose = Files.Fine_Tune
                     , bytes = 4077
@@ -318,17 +319,17 @@ main = do
 
                 _ <- cancelUpload cancelledId
 
-                Upload{ id } <- createUpload CreateUpload
+                UploadObject{ id } <- createUpload CreateUpload
                     { filename = "training_data.jsonl"
                     , purpose = Files.Fine_Tune
                     , bytes = 4077
                     , mime_type = "text/jsonl"
                     }
 
-                Part{ id = partId0 } <- addUploadPart id AddUploadPart
+                PartObject{ id = partId0 } <- addUploadPart id AddUploadPart
                     { data_ = "tasty/data/v1/uploads/training_data0.jsonl" }
 
-                Part{ id = partId1 } <- addUploadPart id AddUploadPart
+                PartObject{ id = partId1 } <- addUploadPart id AddUploadPart
                     { data_ = "tasty/data/v1/uploads/training_data1.jsonl" }
 
                 _ <- completeUpload id CompleteUpload

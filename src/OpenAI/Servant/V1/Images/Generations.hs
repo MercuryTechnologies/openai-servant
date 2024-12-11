@@ -58,4 +58,6 @@ instance ToJSON CreateImage where
 
 -- | Servant API
 type API =
-    "generations" :> ReqBody '[JSON] CreateImage :> Post '[JSON] (ListOf Image)
+        "generations"
+    :>  ReqBody '[JSON] CreateImage
+    :>  Post '[JSON] (ListOf ImageObject)

@@ -8,8 +8,8 @@ module OpenAI.Servant.V1.Uploads
     , _AddUploadPart
     , CompleteUpload(..)
     , _CompleteUpload
-    , Upload(..)
-    , Part(..)
+    , UploadObject(..)
+    , PartObject(..)
       -- * Other types
     , Status(..)
       -- * Servant
@@ -17,7 +17,7 @@ module OpenAI.Servant.V1.Uploads
     ) where
 
 import OpenAI.Servant.Prelude
-import OpenAI.Servant.V1.Files (File, Purpose)
+import OpenAI.Servant.V1.Files (FileObject, Purpose)
 
 import qualified Data.Text as Text
 
@@ -87,7 +87,7 @@ instance FromJSON Status where
     parseJSON = genericParseJSON aesonOptions
 
 -- | The Upload object can accept byte chunks in the form of Parts.
-data Upload file = Upload
+data UploadObject file = UploadObject
     { id :: Text
     , created_at :: POSIXTime
     , filename :: Text
@@ -101,17 +101,17 @@ data Upload file = Upload
 
 -- The reason this is not:
 --
--- instance FromJSON file => FromJSON (Upload file)
+-- instance FromJSON file => FromJSON (UploadObject file)
 --
 -- … is because that doesn't correctly handle the case where `file = Maybe b`.
 -- Specifically, it doesn't allow the field to be omitted even if the field
 -- can be `Nothing`.  However, adding a concrete instance avoids this issue.
-instance FromJSON (Upload (Maybe Void))
-instance FromJSON (Upload File)
+instance FromJSON (UploadObject (Maybe Void))
+instance FromJSON (UploadObject FileObject)
 
--- | The upload `Part` represents a chunk of bytes we can add to an `Upload`
+-- | The upload part represents a chunk of bytes we can add to an upload
 -- object
-data Part = Part
+data PartObject = PartObject
     { id :: Text
     , created_at :: POSIXTime
     , upload_id :: Text
@@ -123,16 +123,16 @@ data Part = Part
 type API
     = "uploads"
     :>  (         ReqBody '[JSON] CreateUpload
-              :>  Post '[JSON] (Upload (Maybe Void))
+              :>  Post '[JSON] (UploadObject (Maybe Void))
         :<|>      Capture "upload_id" Text
               :>  "parts"
               :>  MultipartForm Tmp AddUploadPart
-              :>  Post '[JSON] Part
+              :>  Post '[JSON] PartObject
         :<|>      Capture "upload_id" Text
               :>  "complete"
               :>  ReqBody '[JSON] CompleteUpload
-              :>  Post '[JSON] (Upload File)
+              :>  Post '[JSON] (UploadObject FileObject)
         :<|>      Capture "upload_id" Text
               :>  "cancel"
-              :>  Post '[JSON] (Upload (Maybe Void))
+              :>  Post '[JSON] (UploadObject (Maybe Void))
         )

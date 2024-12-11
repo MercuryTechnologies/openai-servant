@@ -5,7 +5,7 @@ module OpenAI.Servant.V1.Chat.Completions
     ( -- * Main types
       CreateChatCompletion(..)
     , _CreateChatCompletion
-    , ChatCompletion(..)
+    , ChatCompletionObject(..)
     , Choice(..)
     , Message(..)
     , messageToContent
@@ -372,7 +372,7 @@ data Usage = Usage
       deriving anyclass (FromJSON)
 
 -- | ChatCompletion body
-data ChatCompletion = ChatCompletion
+data ChatCompletionObject = ChatCompletionObject
     { id :: Text
     , choices :: Vector Choice
     , created :: POSIXTime
@@ -389,4 +389,4 @@ type API =
         "chat"
     :>  "completions"
     :>  ReqBody '[JSON] CreateChatCompletion
-    :>  Post '[JSON] ChatCompletion
+    :>  Post '[JSON] ChatCompletionObject

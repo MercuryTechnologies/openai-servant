@@ -3,9 +3,9 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     ( -- * Main types
       CreateFineTuningJob(..)
     , _CreateFineTuningJob
-    , Job(..)
-    , Event(..)
-    , Checkpoint(..)
+    , JobObject(..)
+    , EventObject(..)
+    , CheckpointObject(..)
       -- * Other types
     , AutoOr(..)
     , Hyperparameters(..)
@@ -97,7 +97,7 @@ instance FromJSON Status where
 
 -- | The fine_tuning.job object represents a fine-tuning job that has been
 -- created through the API.
-data Job = Job
+data JobObject = JobObject
     { id :: Text
     , created_at :: POSIXTime
     , error :: Maybe Error
@@ -126,7 +126,7 @@ instance FromJSON Level where
     parseJSON = genericParseJSON aesonOptions
 
 -- | Fine-tuning job event object
-data Event = Event
+data EventObject = EventObject
     { id :: Text
     , created_at :: POSIXTime
     , level :: Level
@@ -149,7 +149,7 @@ data Metrics = Metrics
 
 -- | The @fine_tuning.job.checkpoint@ object represents a model checkpoint for
 -- a fine-tuning job that is ready to use
-data Checkpoint = Checkpoint
+data CheckpointObject = CheckpointObject
     { id :: Text
     , created_at :: Text
     , fine_tuned_model_checkpoint :: Text
@@ -165,23 +165,23 @@ type API =
         "fine_tuning"
     :>  "jobs"
     :>  (         ReqBody '[JSON] CreateFineTuningJob
-              :>  Post '[JSON] Job
+              :>  Post '[JSON] JobObject
         :<|>      QueryParam "after" Text
               :>  QueryParam "limit" Natural
-              :>  Get '[JSON] (ListOf Job)
+              :>  Get '[JSON] (ListOf JobObject)
         :<|>      Capture "fine_tuning_job_id" Text
               :>  "events"
               :>  QueryParam "after" Text
               :>  QueryParam "limit" Natural
-              :>  Get '[JSON] (ListOf Event)
+              :>  Get '[JSON] (ListOf EventObject)
         :<|>      Capture "fine_tuning_job_id" Text
               :>  "checkpoints"
               :>  QueryParam "after" Text
               :>  QueryParam "limit" Natural
-              :>  Get '[JSON] (ListOf Checkpoint)
+              :>  Get '[JSON] (ListOf CheckpointObject)
         :<|>      Capture "fine_tuning_job_id" Text
-              :>  Get '[JSON] Job
+              :>  Get '[JSON] JobObject
         :<|>      Capture "fine_tuning_job_id" Text
               :>  "cancel"
-              :>  Post '[JSON] Job
+              :>  Post '[JSON] JobObject
         )

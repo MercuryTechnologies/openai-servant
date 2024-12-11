@@ -3,7 +3,7 @@ module OpenAI.Servant.V1.Batches
     ( -- * Main types
       CreateBatch(..)
     , _CreateBatch
-    , Batch(..)
+    , BatchObject(..)
       -- * Other types
     , Status(..)
     , Counts(..)
@@ -54,7 +54,7 @@ data Counts = Counts
       deriving anyclass (FromJSON)
 
 -- | The batch object
-data Batch = Batch
+data BatchObject = BatchObject
     { id :: Text
     , object :: Text
     , endpoint :: Text
@@ -77,20 +77,20 @@ data Batch = Batch
     , metadata :: Maybe (Map Text Text)
     } deriving stock (Generic, Show)
 
-instance FromJSON Batch where
+instance FromJSON BatchObject where
     parseJSON = genericParseJSON aesonOptions
 
 -- | Servant API
 type API =
         "batches"
     :>  (         ReqBody '[JSON] CreateBatch
-              :>  Post '[JSON] Batch
+              :>  Post '[JSON] BatchObject
         :<|>      Capture "batch_id" Text
-              :>  Get '[JSON] Batch
+              :>  Get '[JSON] BatchObject
         :<|>      Capture "batch_id" Text
               :>  "cancel"
-              :>  Post '[JSON] Batch
+              :>  Post '[JSON] BatchObject
         :<|>      QueryParam "after" Text
               :>  QueryParam "limit" Natural
-              :>  Get '[JSON] (ListOf Batch)
+              :>  Get '[JSON] (ListOf BatchObject)
         )

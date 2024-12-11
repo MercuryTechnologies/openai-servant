@@ -12,18 +12,16 @@ import Data.ByteString.Char8 ()
 import Data.Proxy (Proxy(..))
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Audio.Speech (CreateSpeech)
-import OpenAI.Servant.V1.Audio.Translations (CreateTranslation, Translation)
-import OpenAI.Servant.V1.Chat.Completions (ChatCompletion, CreateChatCompletion)
-import OpenAI.Servant.V1.Embeddings (CreateEmbeddings, Embedding)
-import OpenAI.Servant.V1.Batches (CreateBatch, Batch)
+import OpenAI.Servant.V1.Embeddings (CreateEmbeddings, EmbeddingObject)
+import OpenAI.Servant.V1.Batches (CreateBatch, BatchObject)
 import OpenAI.Servant.V1.DeletionStatus (DeletionStatus)
-import OpenAI.Servant.V1.Files (File, UploadFile)
-import OpenAI.Servant.V1.Images.Image (Image)
+import OpenAI.Servant.V1.Files (FileObject, UploadFile)
+import OpenAI.Servant.V1.Images.Image (ImageObject)
 import OpenAI.Servant.V1.Images.Generations (CreateImage)
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
 import OpenAI.Servant.V1.ListOf (ListOf(..))
-import OpenAI.Servant.V1.Models (Model)
+import OpenAI.Servant.V1.Models (ModelObject)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import OpenAI.Servant.V1.Order (Order)
 import OpenAI.Servant.V1.Threads (CreateThread, ModifyThread, Thread)
@@ -33,11 +31,15 @@ import Servant.Multipart.Client ()
 import OpenAI.Servant.V1.Assistants
     (Assistant, CreateAssistant, ModifyAssistant)
 import OpenAI.Servant.V1.Audio.Transcriptions
-    (CreateTranscription, Transcription)
+    (CreateTranscription, TranscriptionObject)
+import OpenAI.Servant.V1.Audio.Translations
+    (CreateTranslation, TranslationObject)
+import OpenAI.Servant.V1.Chat.Completions
+    (ChatCompletionObject, CreateChatCompletion)
 import OpenAI.Servant.V1.FineTuning.Jobs
-    (Checkpoint, CreateFineTuningJob, Event, Job)
+    (CheckpointObject, CreateFineTuningJob, EventObject, JobObject)
 import OpenAI.Servant.V1.Uploads
-    (AddUploadPart, CompleteUpload, CreateUpload, Part, Upload)
+    (AddUploadPart, CompleteUpload, CreateUpload, PartObject, UploadObject)
 
 import qualified Control.Exception as Exception
 import qualified Data.Text as Text
@@ -172,17 +174,17 @@ boundary = "j3qdD3XtDVjvva8IIqoBzHQAYwCenObtPMkxAFnylwFyU5xffWKoYrY"
 -- | API methods
 data Methods = Methods
     { createSpeech :: CreateSpeech -> IO ByteString
-    , createTranscription :: CreateTranscription -> IO Transcription
-    , createTranslation :: CreateTranslation -> IO Translation
-    , createChatCompletion :: CreateChatCompletion -> IO ChatCompletion
-    , createEmbeddings :: CreateEmbeddings -> IO (Vector Embedding)
-    , createFineTuningJob :: CreateFineTuningJob -> IO Job
+    , createTranscription :: CreateTranscription -> IO TranscriptionObject
+    , createTranslation :: CreateTranslation -> IO TranslationObject
+    , createChatCompletion :: CreateChatCompletion -> IO ChatCompletionObject
+    , createEmbeddings :: CreateEmbeddings -> IO (Vector EmbeddingObject)
+    , createFineTuningJob :: CreateFineTuningJob -> IO JobObject
     , listFineTuningJobs
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (Vector Job)
+        -> IO (Vector JobObject)
     , listFineTuningEvents
         :: Text
         -- ^ Job ID
@@ -190,7 +192,7 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (Vector Event)
+        -> IO (Vector EventObject)
     , listFineTuningCheckpoints
         :: Text
         -- ^ Job ID
@@ -198,31 +200,31 @@ data Methods = Methods
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (Vector Checkpoint)
+        -> IO (Vector CheckpointObject)
     , retrieveFineTuningJob
         :: Text
         -- ^ Job ID
-        -> IO FineTuning.Jobs.Job
+        -> IO JobObject
     , cancelFineTuning
         :: Text
         -- ^ Job ID
-        -> IO FineTuning.Jobs.Job
-    , createBatch :: CreateBatch -> IO Batch
+        -> IO JobObject
+    , createBatch :: CreateBatch -> IO BatchObject
     , retrieveBatch
         :: Text
         -- ^ Batch ID
-        -> IO Batch
+        -> IO BatchObject
     , cancelBatch
         :: Text
         -- ^ Batch ID
-        -> IO Batch
+        -> IO BatchObject
     , listBatch
         :: Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
-        -> IO (Vector Batch)
-    , uploadFile :: UploadFile -> IO File
+        -> IO (Vector BatchObject)
+    , uploadFile :: UploadFile -> IO FileObject
     , listFiles
         :: Maybe Files.Purpose
         -- ^
@@ -232,11 +234,11 @@ data Methods = Methods
         -- ^
         -> Maybe Text
         -- ^ after
-        -> IO (Vector File)
+        -> IO (Vector FileObject)
     , retrieveFile
         :: Text
         -- ^ File ID
-        -> IO Files.File
+        -> IO FileObject
     , deleteFile
         :: Text
         -- ^ File ID
@@ -246,35 +248,35 @@ data Methods = Methods
         -- ^ File ID
         -> IO ByteString
     , createUpload
-        :: CreateUpload -> IO (Upload (Maybe Void))
+        :: CreateUpload -> IO (UploadObject (Maybe Void))
     , addUploadPart
         :: Text
         -- ^ Upload ID
         -> AddUploadPart
         -- ^
-        -> IO Part
+        -> IO PartObject
     , completeUpload
         :: Text
         -- ^ Upload ID
         -> CompleteUpload
         -- ^
-        -> IO (Upload Files.File)
+        -> IO (UploadObject FileObject)
     , cancelUpload
         :: Text
         -- ^ Upload ID
-        -> IO (Upload (Maybe Void))
-    , createImage :: CreateImage -> IO (Vector Image)
-    , createImageEdit :: CreateImageEdit -> IO (Vector Image)
-    , createImageVariation :: CreateImageVariation -> IO (Vector Image)
-    , listModels :: IO (Vector Model)
+        -> IO (UploadObject (Maybe Void))
+    , createImage :: CreateImage -> IO (Vector ImageObject)
+    , createImageEdit :: CreateImageEdit -> IO (Vector ImageObject)
+    , createImageVariation :: CreateImageVariation -> IO (Vector ImageObject)
+    , listModels :: IO (Vector ModelObject)
     , retrieveModel
         :: Text
         -- ^ Model ID
-        -> IO Model
+        -> IO ModelObject
     , deleteModel
         :: Text
         -- ^ Model ID
-        -> IO Models.DeletionStatus
+        -> IO DeletionStatus
     , createModeration :: CreateModeration -> IO Moderation
     , createAssistant :: CreateAssistant -> IO Assistant
     , listAssistants

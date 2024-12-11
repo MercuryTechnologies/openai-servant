@@ -3,7 +3,7 @@ module OpenAI.Servant.V1.Embeddings
     ( -- * Main types
       CreateEmbeddings(..)
     , _CreateEmbeddings
-    , Embedding(..)
+    , EmbeddingObject(..)
       -- * Other types
     , EncodingFormat(..)
       -- * Servant
@@ -39,7 +39,7 @@ _CreateEmbeddings = CreateEmbeddings
     }
 
 -- | The embedding object
-data Embedding = Embbedding
+data EmbeddingObject = EmbbeddingObject
     { index :: Natural
     , embedding :: Vector Double
     , object :: Text
@@ -50,4 +50,4 @@ data Embedding = Embbedding
 type API =
         "embeddings"
     :>  ReqBody '[JSON] CreateEmbeddings
-    :>  Post '[JSON] (ListOf Embedding)
+    :>  Post '[JSON] (ListOf EmbeddingObject)

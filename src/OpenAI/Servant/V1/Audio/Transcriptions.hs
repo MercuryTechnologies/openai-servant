@@ -6,7 +6,7 @@ module OpenAI.Servant.V1.Audio.Transcriptions
     ( -- * Main types
       CreateTranscription(..)
     , _CreateTranscription
-    , Transcription(..)
+    , TranscriptionObject(..)
       -- * Other types
     , Segment(..)
       -- * Servant
@@ -69,7 +69,7 @@ data Segment = Segment
 
 -- | Represents a verbose json transcription response returned by model, based
 -- on the provided input.
-data Transcription = Transcription
+data TranscriptionObject = TranscriptionObject
     { language :: Maybe Text
     , duration :: Maybe Double
     , text :: Text
@@ -81,4 +81,4 @@ data Transcription = Transcription
 type API =
         "transcriptions"
     :>  MultipartForm Tmp CreateTranscription
-    :>  Post '[JSON] Transcription
+    :>  Post '[JSON] TranscriptionObject

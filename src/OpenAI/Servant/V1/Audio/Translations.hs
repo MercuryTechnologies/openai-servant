@@ -5,7 +5,7 @@ module OpenAI.Servant.V1.Audio.Translations
     ( -- * Main types
       CreateTranslation(..)
     , _CreateTranslation
-    , Translation(..)
+    , TranslationObject(..)
       -- * Servant
     , API
     ) where
@@ -47,7 +47,7 @@ _CreateTranslation = CreateTranslation
 
 -- | Represents a transcription response returned by model, based on the
 -- provided input.
-data Translation = Translation
+data TranslationObject = TranslationObject
     { text :: Text
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
@@ -56,4 +56,4 @@ data Translation = Translation
 type API =
         "translations"
     :>  MultipartForm Tmp CreateTranslation
-    :>  Post '[JSON] Translation
+    :>  Post '[JSON] TranslationObject

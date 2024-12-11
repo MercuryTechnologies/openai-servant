@@ -28,10 +28,10 @@ main = do
 
     let Methods{ createChatCompletion } = makeMethods clientEnv (Text.pack key)
 
-    line <- Text.IO.getLine
+    text <- Text.IO.getLine
 
-    ChatCompletion{ choices } <- createChatCompletion _CreateChatCompletion
-        { messages = [ User{ content = line, name = Nothing } ]
+    ChatCompletionObject{ choices } <- createChatCompletion _CreateChatCompletion
+        { messages = [ User{ content = [ Text{ text } ], name = Nothing } ]
         , model = "gpt-4o-mini"
         }
 
