@@ -75,7 +75,7 @@ instance ToJSON CompleteUpload where
             CompleteUpload{ md5 = Just "", .. }
         fix x = x
 
--- | The status of the `Upload`
+-- | The status of the Upload
 data Status
     = Pending
     | Completed

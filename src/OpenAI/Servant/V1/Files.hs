@@ -41,7 +41,7 @@ instance ToMultipart Tmp UploadFile where
             fdFileCType = "application/json"
             fdPayload = file
 
--- | The `File` object represents a document that has been uploaded to OpenAI
+-- | The File object represents a document that has been uploaded to OpenAI
 data FileObject = FileObject
     { id :: Text
     , bytes :: Natural
