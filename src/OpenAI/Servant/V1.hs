@@ -26,6 +26,7 @@ import OpenAI.Servant.V1.ListOf (ListOf(..))
 import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import OpenAI.Servant.V1.Order (Order)
+import OpenAI.Servant.V1.Threads (CreateThread, ModifyThread, Thread)
 import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
@@ -51,6 +52,7 @@ import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.Images as Images
 import qualified OpenAI.Servant.V1.Models as Models
 import qualified OpenAI.Servant.V1.Moderations as Moderations
+import qualified OpenAI.Servant.V1.Threads as Threads
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
@@ -120,6 +122,13 @@ makeMethods clientEnv token = Methods{..}
                 :<|>  retrieveAssistant
                 :<|>  modifyAssistant
                 :<|>  deleteAssistant
+                )
+            )
+      :<|>  (   (\x -> x "assistants=v2")
+            ->  (     createThread
+                :<|>  retrieveThread
+                :<|>  modifyThread
+                :<|>  deleteThread
                 )
             )
       ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
@@ -291,6 +300,21 @@ data Methods = Methods
         :: Text
         -- ^ Assistant ID
         -> IO DeletionStatus
+    , createThread :: CreateThread -> IO Thread
+    , retrieveThread
+        :: Text
+        -- ^ Thread ID
+        -> IO Thread
+    , modifyThread
+        :: Text
+        -- ^ Thread ID
+        -> ModifyThread
+        -- ^
+        -> IO Thread
+    , deleteThread
+        :: Text
+        -- ^ Thread ID
+        -> IO DeletionStatus
     }
 
 -- | Servant API
@@ -308,4 +332,5 @@ type API
         :<|>  Models.API
         :<|>  Moderations.API
         :<|>  Assistants.API
+        :<|>  Threads.API
         )

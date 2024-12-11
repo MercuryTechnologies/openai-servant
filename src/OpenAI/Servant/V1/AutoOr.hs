@@ -18,4 +18,5 @@ instance ToJSON a => ToJSON (AutoOr a) where
     toJSON Auto = "auto"
     toJSON (Specific a) = toJSON a
 
-
+instance IsString a => IsString (AutoOr a) where
+    fromString string = Specific (fromString string)

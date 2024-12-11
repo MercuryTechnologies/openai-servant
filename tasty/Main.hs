@@ -37,6 +37,8 @@ import OpenAI.Servant.V1.FineTuning.Jobs
     (CreateFineTuningJob(..), Hyperparameters(..), Job(..))
 import OpenAI.Servant.V1.Images.Generations
     (CreateImage(..), Quality(..), Style(..))
+import OpenAI.Servant.V1.Threads
+    (CreateThread(..), ModifyThread(..), Thread(..))
 import OpenAI.Servant.V1.Uploads
     ( AddUploadPart(..)
     , CompleteUpload(..)
@@ -54,6 +56,7 @@ import qualified OpenAI.Servant.V1.Assistants as Assistants
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
 import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
+import qualified OpenAI.Servant.V1.Threads as Threads
 import Prelude hiding (id)
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
@@ -125,7 +128,8 @@ main = do
             HUnit.testCase "Create chat completion - minimal" do
                 _ <- createChatCompletion CreateChatCompletion
                     { messages =
-                        [ User{ content = [ "Hello, world!" ], name = Nothing }
+                        [ Completions.User
+                            { content = [ "Hello, world!" ], name = Nothing }
                         ]
                     , model = chatModel
                     , store = Nothing
@@ -465,6 +469,31 @@ main = do
 
                 return ()
 
+    let threadsTest = do
+            HUnit.testCase "Thread operations" do
+                Thread{ id } <- createThread CreateThread
+                    { messages =
+                        [ Threads.User
+                            { content = [ "Hello, world!" ]
+                            , attachments = Nothing
+                            , metadata = Nothing
+                            }
+                        ]
+                    , tool_resources = Nothing
+                    , metadata = Nothing
+                    }
+
+                _ <- retrieveThread id
+
+                _ <- modifyThread id ModifyThread
+                    { tool_resources = Nothing
+                    , metadata = Nothing
+                    }
+
+                _ <- deleteThread id
+
+                return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -483,6 +512,7 @@ main = do
                 , createImageVariationMaximalTest
                 , createModerationTest
                 , assistantsTest
+                , threadsTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

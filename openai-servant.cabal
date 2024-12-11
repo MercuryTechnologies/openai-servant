@@ -53,6 +53,9 @@ library
                         OpenAI.Servant.V1.Order
                         OpenAI.Servant.V1.Moderations
                         OpenAI.Servant.V1.ResponseFormat
+                        OpenAI.Servant.V1.Threads
+                        OpenAI.Servant.V1.Tool
+                        OpenAI.Servant.V1.ToolResources
                         OpenAI.Servant.V1.Uploads
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds

@@ -26,71 +26,8 @@ import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.ResponseFormat
-
--- | The ranking options for the file search
-data RankingOptions = RankingOptions
-    { ranker :: Maybe Text
-    , score_threshold :: Double
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
-
--- | Overrides for the file search tool
-data FileSearch = FileSearch
-    { max_num_results :: Maybe Natural
-    , ranking_options :: Maybe RankingOptions
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
-
--- | The Function tool
-data Function = Function
-    { description :: Maybe Text
-    , name :: Text
-    , parameters :: Maybe Value
-    , strict :: Maybe Bool
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
-
--- | A tool enabled on the assistant
-data Tool
-    = Tool_Code_Interpreter
-    | Tool_File_Search{ file_search :: FileSearch }
-    | Tool_Function{ function :: Function }
-    deriving stock (Generic, Show)
-
-toolOptions :: Options
-toolOptions = aesonOptions
-    { sumEncoding =
-        TaggedObject{ tagFieldName = "type", contentsFieldName = "" }
-
-    , tagSingleConstructors = True
-
-    , constructorTagModifier = stripPrefix "Tool_"
-    }
-
-instance FromJSON Tool where
-    parseJSON = genericParseJSON toolOptions
-
-instance ToJSON Tool where
-    toJSON = genericToJSON toolOptions
-
--- | Resources for the code search tool
-data CodeInterpreterResources = CodeInterpreterResources
-    { file_ids :: Maybe (Vector Text)
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
-
--- | Resources for the file search tool
-data FileSearchResources = FileSearchResources
-    { vector_store_ids :: Maybe (Vector Text)
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
-
--- | A set of resources that are used by the assistant's tools
-data ToolResources = ToolResources
-    { code_interpreter :: Maybe CodeInterpreterResources
-    , file_search :: Maybe FileSearchResources
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
+import OpenAI.Servant.V1.Tool
+import OpenAI.Servant.V1.ToolResources
 
 -- | Request body for @\/v1\/assistants@
 data CreateAssistant = CreateAssistant
