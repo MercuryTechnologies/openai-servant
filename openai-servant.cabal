@@ -40,8 +40,8 @@ library
                         OpenAI.Servant.V1.DeletionStatus
                         OpenAI.Servant.V1.Embeddings
                         OpenAI.Servant.V1.Error
-                        OpenAI.Servant.V1.FineTuning.Jobs
                         OpenAI.Servant.V1.Files
+                        OpenAI.Servant.V1.FineTuning.Jobs
                         OpenAI.Servant.V1.Images
                         OpenAI.Servant.V1.Images.Edits
                         OpenAI.Servant.V1.Images.Generations
@@ -49,9 +49,11 @@ library
                         OpenAI.Servant.V1.Images.ResponseFormat
                         OpenAI.Servant.V1.Images.Variations
                         OpenAI.Servant.V1.ListOf
+                        OpenAI.Servant.V1.Message
+                        OpenAI.Servant.V1.Messages
                         OpenAI.Servant.V1.Models
-                        OpenAI.Servant.V1.Order
                         OpenAI.Servant.V1.Moderations
+                        OpenAI.Servant.V1.Order
                         OpenAI.Servant.V1.ResponseFormat
                         OpenAI.Servant.V1.Threads
                         OpenAI.Servant.V1.Tool

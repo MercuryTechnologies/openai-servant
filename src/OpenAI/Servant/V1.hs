@@ -21,15 +21,17 @@ import OpenAI.Servant.V1.Images.Generations (CreateImage)
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
 import OpenAI.Servant.V1.ListOf (ListOf(..))
+import OpenAI.Servant.V1.Message (Message)
+import OpenAI.Servant.V1.Messages (ModifyMessage, MessageObject)
 import OpenAI.Servant.V1.Models (ModelObject)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import OpenAI.Servant.V1.Order (Order)
-import OpenAI.Servant.V1.Threads (CreateThread, ModifyThread, Thread)
+import OpenAI.Servant.V1.Threads (CreateThread, ModifyThread, ThreadObject)
 import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
 import OpenAI.Servant.V1.Assistants
-    (Assistant, CreateAssistant, ModifyAssistant)
+    (AssistantObject, CreateAssistant, ModifyAssistant)
 import OpenAI.Servant.V1.Audio.Transcriptions
     (CreateTranscription, TranscriptionObject)
 import OpenAI.Servant.V1.Audio.Translations
@@ -52,6 +54,7 @@ import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as FineTuning.Jobs
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.Images as Images
+import qualified OpenAI.Servant.V1.Messages as Messages
 import qualified OpenAI.Servant.V1.Models as Models
 import qualified OpenAI.Servant.V1.Moderations as Moderations
 import qualified OpenAI.Servant.V1.Threads as Threads
@@ -133,6 +136,14 @@ makeMethods clientEnv token = Methods{..}
                 :<|>  deleteThread
                 )
             )
+      :<|>  (   (\x -> x "assistants=v2")
+            ->  (     createMessage
+                :<|>  listMessages_
+                :<|>  retrieveMessage
+                :<|>  modifyMessage
+                :<|>  deleteMessage
+                )
+            )
       ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
 
     run :: Client.ClientM a -> IO a
@@ -163,6 +174,7 @@ makeMethods clientEnv token = Methods{..}
     createImageVariation a = toVector (createImageVariation_ (boundary, a))
     listModels = toVector listModels_
     listAssistants a b c d = toVector (listAssistants_ a b c d)
+    listMessages a = toVector (listMessages_ a)
 
 -- | Hard-coded boundary to simplify the user-experience
 --
@@ -278,7 +290,7 @@ data Methods = Methods
         -- ^ Model ID
         -> IO DeletionStatus
     , createModeration :: CreateModeration -> IO Moderation
-    , createAssistant :: CreateAssistant -> IO Assistant
+    , createAssistant :: CreateAssistant -> IO AssistantObject
     , listAssistants
         :: Maybe Natural
         -- ^ limit
@@ -288,34 +300,63 @@ data Methods = Methods
         -- ^ after
         -> Maybe Text
         -- ^ before
-        -> IO (Vector Assistant)
+        -> IO (Vector AssistantObject)
     , retrieveAssistant
         :: Text
         -- ^ Assistant ID
-        -> IO Assistant
+        -> IO AssistantObject
     , modifyAssistant
         :: Text
         -- ^ Assistant ID
         -> ModifyAssistant
-        -> IO Assistant
+        -> IO AssistantObject
     , deleteAssistant
         :: Text
         -- ^ Assistant ID
         -> IO DeletionStatus
-    , createThread :: CreateThread -> IO Thread
+    , createThread :: CreateThread -> IO ThreadObject
     , retrieveThread
         :: Text
         -- ^ Thread ID
-        -> IO Thread
+        -> IO ThreadObject
     , modifyThread
         :: Text
         -- ^ Thread ID
         -> ModifyThread
         -- ^
-        -> IO Thread
+        -> IO ThreadObject
     , deleteThread
         :: Text
         -- ^ Thread ID
+        -> IO DeletionStatus
+    , createMessage
+        :: Text
+        -- ^ Thread ID
+        -> Message
+        -> IO MessageObject
+    , listMessages
+        :: Text
+        -- ^ Thread ID
+        -> IO (Vector MessageObject)
+    , retrieveMessage
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Message ID
+        -> IO MessageObject
+    , modifyMessage
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Message ID
+        -> ModifyMessage
+        -- ^
+        -> IO MessageObject
+    , deleteMessage
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Message ID
         -> IO DeletionStatus
     }
 
@@ -335,4 +376,5 @@ type API
         :<|>  Moderations.API
         :<|>  Assistants.API
         :<|>  Threads.API
+        :<|>  Messages.API
         )

@@ -5,7 +5,7 @@ module OpenAI.Servant.V1.Assistants
     , _CreateAssistant
     , ModifyAssistant(..)
     , _ModifyAssistant
-    , Assistant(..)
+    , AssistantObject(..)
 
       -- * Other types
     , RankingOptions
@@ -92,7 +92,7 @@ _ModifyAssistant = ModifyAssistant
     }
 
 -- | Represents an assistant that can call the model and use tools.
-data Assistant = Assistant
+data AssistantObject = AssistantObject
     { id :: Text
     , object :: Text
     , created_at :: POSIXTime
@@ -113,17 +113,18 @@ data Assistant = Assistant
 type API =
         "assistants"
     :>  Header' '[Required, Strict] "OpenAI-Beta" Text
-    :>  (     ReqBody '[JSON] CreateAssistant :> Post '[JSON] Assistant
+    :>  (         ReqBody '[JSON] CreateAssistant
+              :>  Post '[JSON] AssistantObject
         :<|>      QueryParam "limit" Natural
               :>  QueryParam "order" Order
               :>  QueryParam "after" Text
               :>  QueryParam "before" Text
-              :>  Get '[JSON] (ListOf Assistant)
+              :>  Get '[JSON] (ListOf AssistantObject)
         :<|>      Capture "assistant_id" Text
-              :>  Get '[JSON] Assistant
+              :>  Get '[JSON] AssistantObject
         :<|>      Capture "assistant_id" Text
               :>  ReqBody '[JSON] ModifyAssistant
-              :>  Post '[JSON] Assistant
+              :>  Post '[JSON] AssistantObject
         :<|>      Capture "assistant_id" Text
               :>  Delete '[JSON] DeletionStatus
         )

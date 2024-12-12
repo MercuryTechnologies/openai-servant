@@ -18,17 +18,18 @@ import OpenAI.Servant.V1.Embeddings (CreateEmbeddings(..), EncodingFormat(..))
 import OpenAI.Servant.V1.Files (FileObject(..), Order(..), UploadFile(..))
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit(..))
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation(..))
+import OpenAI.Servant.V1.Message (Message(..))
+import OpenAI.Servant.V1.Messages (MessageObject(..), ModifyMessage(..))
 import OpenAI.Servant.V1.Moderations (CreateModeration(..))
 
 import OpenAI.Servant.V1.Assistants
-    (CreateAssistant(..), ModifyAssistant(..), Assistant(..))
+    (CreateAssistant(..), ModifyAssistant(..), AssistantObject(..))
 import OpenAI.Servant.V1.Audio.Speech
     (_CreateSpeech, CreateSpeech(..), Voice(..))
 import OpenAI.Servant.V1.Chat.Completions
     ( CallableFunction(..)
     , CalledFunction(..)
     , CreateChatCompletion(..)
-    , Message(..)
     , Modality(..)
     , Tool(..)
     , ToolCall(..)
@@ -39,7 +40,7 @@ import OpenAI.Servant.V1.FineTuning.Jobs
 import OpenAI.Servant.V1.Images.Generations
     (CreateImage(..), Quality(..), Style(..))
 import OpenAI.Servant.V1.Threads
-    (CreateThread(..), ModifyThread(..), Thread(..))
+    (CreateThread(..), ModifyThread(..), ThreadObject(..))
 import OpenAI.Servant.V1.Uploads
     ( AddUploadPart(..)
     , CompleteUpload(..)
@@ -53,11 +54,9 @@ import qualified Network.HTTP.Client as HTTP.Client
 import qualified Network.HTTP.Client.TLS as TLS
 import qualified OpenAI.Servant.V1 as V1
 import qualified OpenAI.Servant.V1.Chat.Completions as Completions
-import qualified OpenAI.Servant.V1.Assistants as Assistants
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
 import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
-import qualified OpenAI.Servant.V1.Threads as Threads
 import Prelude hiding (id)
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
@@ -163,7 +162,7 @@ main = do
             HUnit.testCase "Create chat completion - maximal" do
                 _ <- createChatCompletion CreateChatCompletion
                     { messages =
-                        [ User
+                        [ Completions.User
                             { content = [ "Hello, world!" ]
                             , name = Just "gabby"
                             }
@@ -182,7 +181,7 @@ main = do
                                     }
                                 ]
                             }
-                        , Tool
+                        , Completions.Tool
                             { content = [ "Hello, world!" ]
                             , tool_call_id = "call_bzE95mjMMFqeanfY2sL6Sdir"
                             }
@@ -436,7 +435,7 @@ main = do
 
     let assistantsTest = do
             HUnit.testCase "Assistant operations" do
-                Assistants.Assistant{ id } <- createAssistant CreateAssistant
+                AssistantObject{ id } <- createAssistant CreateAssistant
                     { model = chatModel
                     , name = Nothing
                     , description = Nothing
@@ -472,9 +471,9 @@ main = do
 
     let threadsTest = do
             HUnit.testCase "Thread operations" do
-                Thread{ id } <- createThread CreateThread
-                    { messages =
-                        [ Threads.User
+                ThreadObject{ id } <- createThread CreateThread
+                    { messages = Just
+                        [ User
                             { content = [ "Hello, world!" ]
                             , attachments = Nothing
                             , metadata = Nothing
@@ -492,6 +491,38 @@ main = do
                     }
 
                 _ <- deleteThread id
+
+                return ()
+
+    let messagesTest = do
+            HUnit.testCase "Message operations" do
+                ThreadObject{ id = threadId } <- createThread CreateThread
+                    { messages = Just
+                        [ User
+                            { content = [ "Hi, how can I help you!" ]
+                            , attachments = Nothing
+                            , metadata = Nothing
+                            }
+                        ]
+                    , tool_resources = Nothing
+                    , metadata = Nothing
+                    }
+
+                MessageObject{ id = messageId } <- createMessage threadId User
+                    { content = [ "What is the capital of France?" ]
+                    , attachments = Nothing
+                    , metadata = Nothing
+                    }
+
+                _ <- retrieveMessage threadId messageId
+
+                _ <- modifyMessage threadId messageId ModifyMessage
+                    { metadata = Nothing
+                    }
+
+                _ <- deleteMessage threadId messageId
+
+                _ <- deleteThread threadId
 
                 return ()
 
@@ -514,6 +545,7 @@ main = do
                 , createModerationTest
                 , assistantsTest
                 , threadsTest
+                , messagesTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)
