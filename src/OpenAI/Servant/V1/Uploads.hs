@@ -99,13 +99,6 @@ data UploadObject file = UploadObject
     , file :: file
     } deriving stock (Generic, Show)
 
--- The reason this is not:
---
--- instance FromJSON file => FromJSON (UploadObject file)
---
--- … is because that doesn't correctly handle the case where `file = Maybe b`.
--- Specifically, it doesn't allow the field to be omitted even if the field
--- can be `Nothing`.  However, adding a concrete instance avoids this issue.
 instance FromJSON (UploadObject (Maybe Void))
 instance FromJSON (UploadObject FileObject)
 

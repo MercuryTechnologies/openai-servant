@@ -15,5 +15,6 @@ data Error = Error
     { code :: Maybe Text
     , message :: Maybe Text
     , param :: Maybe Text
+    , line :: Maybe Natural
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)

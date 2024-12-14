@@ -1,8 +1,8 @@
 -- | @\/v1\/threads@
 module OpenAI.Servant.V1.Threads
     ( -- Main types
-      CreateThread(..)
-    , _CreateThread
+      Thread(..)
+    , _Thread
     , ModifyThread(..)
     , _ModifyThread
     , Message(..)
@@ -24,16 +24,16 @@ import OpenAI.Servant.V1.Message
 import OpenAI.Servant.V1.ToolResources
 
 -- | Request body for @\/v1\/threads@
-data CreateThread = CreateThread
+data Thread = Thread
     { messages :: Maybe (Vector Message)
     , tool_resources :: Maybe ToolResources
     , metadata :: Maybe (Map Text Text)
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
 
--- | Default `CreateThread`
-_CreateThread :: CreateThread
-_CreateThread = CreateThread
+-- | Default `Thread`
+_Thread :: Thread
+_Thread = Thread
     { messages = Nothing
     , tool_resources = Nothing
     , metadata = Nothing
@@ -69,7 +69,7 @@ data ThreadObject = ThreadObject
 type API =
         "threads"
     :>  Header' '[Required, Strict] "OpenAI-Beta" Text
-    :>  (         ReqBody '[JSON] CreateThread
+    :>  (         ReqBody '[JSON] Thread
               :>  Post '[JSON] ThreadObject
         :<|>      Capture "thread_id" Text
               :>  Get '[JSON] ThreadObject

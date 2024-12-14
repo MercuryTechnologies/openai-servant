@@ -5,6 +5,7 @@ module OpenAI.Servant.V1.Tool
     , RankingOptions(..)
     , FileSearch(..)
     , Function(..)
+    , ToolChoice(..)
     ) where
 
 import OpenAI.Servant.Prelude
@@ -54,3 +55,23 @@ instance FromJSON Tool where
 
 instance ToJSON Tool where
     toJSON = genericToJSON toolOptions
+
+-- | Controls which (if any) tool is called by the model
+data ToolChoice
+    = ToolChoiceNone
+    | ToolChoiceAuto
+    | ToolChoiceRequired
+    | ToolChoiceTool Tool
+    deriving stock (Generic, Show)
+
+instance FromJSON ToolChoice where
+    parseJSON "none" = pure ToolChoiceNone
+    parseJSON "auto" = pure ToolChoiceAuto
+    parseJSON "required" = pure ToolChoiceRequired
+    parseJSON other = fmap ToolChoiceTool (parseJSON other)
+
+instance ToJSON ToolChoice where
+    toJSON ToolChoiceNone = "none"
+    toJSON ToolChoiceAuto = "auto"
+    toJSON ToolChoiceRequired = "required"
+    toJSON (ToolChoiceTool tool) = toJSON tool

@@ -14,8 +14,6 @@ module OpenAI.Servant.V1.Chat.Completions
     , InputAudio(..)
     , ImageURL(..)
     , AudioData(..)
-    , CalledFunction(..)
-    , ToolCall(..)
     , Modality(..)
     , Prediction(..)
     , Voice(..)
@@ -23,15 +21,9 @@ module OpenAI.Servant.V1.Chat.Completions
     , AudioParameters(..)
     , ResponseFormat(..)
     , ServiceTier(..)
-    , CallableFunction(..)
-    , Tool(..)
-    , ToolChoice(..)
     , FinishReason(..)
     , Token(..)
     , LogProbs(..)
-    , CompletionTokensDetails(..)
-    , PromptTokensDetails(..)
-    , Usage(..)
     -- * Servant
     , API
     ) where
@@ -39,6 +31,9 @@ module OpenAI.Servant.V1.Chat.Completions
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
 import OpenAI.Servant.V1.ResponseFormat
+import OpenAI.Servant.V1.Tool
+import OpenAI.Servant.V1.ToolCall
+import OpenAI.Servant.V1.Usage
 import Prelude hiding (id)
 
 -- | Audio content part
@@ -76,33 +71,6 @@ instance ToJSON Content where
 data AudioData = AudioData{ id :: Text }
     deriving stock (Generic, Show)
     deriving anyclass (FromJSON, ToJSON)
-
--- | A called function
-data CalledFunction = CalledFunction{ name :: Text, arguments :: Text }
-    deriving stock (Generic, Show)
-    deriving anyclass (FromJSON, ToJSON)
-
--- | Tools called by the model
-data ToolCall = ToolCall_Function
-    { id :: Text
-    , function :: CalledFunction
-    } deriving stock (Generic, Show)
-
-toolCallOptions :: Options
-toolCallOptions = aesonOptions
-    { sumEncoding =
-        TaggedObject{ tagFieldName = "type", contentsFieldName = "" }
-
-    , tagSingleConstructors = True
-
-    , constructorTagModifier = stripPrefix "ToolCall_"
-    }
-
-instance ToJSON ToolCall where
-    toJSON = genericToJSON toolCallOptions
-
-instance FromJSON ToolCall where
-    parseJSON = genericParseJSON toolCallOptions
 
 -- | A message from the conversation so far
 data Message content
@@ -213,44 +181,6 @@ instance FromJSON ServiceTier where
 instance ToJSON ServiceTier where
     toJSON = genericToJSON aesonOptions
 
--- | A callable function
-data CallableFunction = CallableFunction
-    { description :: Maybe Text
-    , name :: Text
-    , parameters :: Maybe Value
-    , strict :: Maybe Bool
-    } deriving stock (Generic, Show)
-      deriving anyclass (ToJSON)
-
--- | Tools callable by the model
-data Tool = Tool_Function
-    { function :: CallableFunction
-    } deriving stock (Generic, Show)
-
-instance ToJSON Tool where
-    toJSON = genericToJSON aesonOptions
-        { sumEncoding =
-            TaggedObject{ tagFieldName = "type", contentsFieldName = "" }
-
-        , tagSingleConstructors = True
-
-        , constructorTagModifier = stripPrefix "Tool_"
-        }
-
--- | Controls which (if any) tool is called by the model
-data ToolChoice
-    = ToolChoiceNone
-    | ToolChoiceAuto
-    | ToolChoiceRequired
-    | ToolChoiceTool Tool
-    deriving stock (Generic, Show)
-
-instance ToJSON ToolChoice where
-    toJSON ToolChoiceNone = "none"
-    toJSON ToolChoiceAuto = "auto"
-    toJSON ToolChoiceRequired = "required"
-    toJSON (ToolChoiceTool tool) = toJSON tool
-
 -- | Request body for @\/v1\/chat\/completions@
 data CreateChatCompletion = CreateChatCompletion
     { messages :: Vector (Message (Vector Content))
@@ -345,32 +275,6 @@ data Choice = Choice
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
--- | Breakdown of tokens used in a completion
-data CompletionTokensDetails = CompletionTokensDetails
-    { accepted_prediction_tokens :: Natural
-    , audio_tokens :: Natural
-    , reasoning_tokens :: Natural
-    , rejected_prediction_tokens :: Natural
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
-
--- | Breakdown of tokens used in the prompt
-data PromptTokensDetails = PromptTokensDetails
-    { audio_tokens :: Natural
-    , cached_tokens :: Natural
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
-
--- | Usage statistics for the completion request
-data Usage = Usage
-    { completion_tokens :: Natural
-    , prompt_tokens :: Natural
-    , total_tokens :: Natural
-    , completion_tokens_details :: CompletionTokensDetails
-    , prompt_tokens_details :: PromptTokensDetails
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
-
 -- | ChatCompletion body
 data ChatCompletionObject = ChatCompletionObject
     { id :: Text
@@ -380,7 +284,7 @@ data ChatCompletionObject = ChatCompletionObject
     , service_tier :: Maybe ServiceTier
     , system_fingerprint :: Text
     , object :: Text
-    , usage :: Usage
+    , usage :: Usage CompletionTokensDetails PromptTokensDetails
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 

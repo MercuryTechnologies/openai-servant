@@ -22,11 +22,11 @@ import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
 import OpenAI.Servant.V1.ListOf (ListOf(..))
 import OpenAI.Servant.V1.Message (Message)
-import OpenAI.Servant.V1.Messages (ModifyMessage, MessageObject)
 import OpenAI.Servant.V1.Models (ModelObject)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import OpenAI.Servant.V1.Order (Order)
-import OpenAI.Servant.V1.Threads (CreateThread, ModifyThread, ThreadObject)
+import OpenAI.Servant.V1.Threads (Thread, ModifyThread, ThreadObject)
+import OpenAI.Servant.V1.Threads.Messages (ModifyMessage, MessageObject)
 import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
@@ -40,6 +40,13 @@ import OpenAI.Servant.V1.Chat.Completions
     (ChatCompletionObject, CreateChatCompletion)
 import OpenAI.Servant.V1.FineTuning.Jobs
     (CheckpointObject, CreateFineTuningJob, EventObject, JobObject)
+import OpenAI.Servant.V1.Threads.Runs
+    ( CreateRun
+    , CreateThreadAndRun
+    , ModifyRun
+    , RunObject
+    , SubmitToolOutputsToRun
+    )
 import OpenAI.Servant.V1.Uploads
     (AddUploadPart, CompleteUpload, CreateUpload, PartObject, UploadObject)
 
@@ -54,10 +61,11 @@ import qualified OpenAI.Servant.V1.Embeddings as Embeddings
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as FineTuning.Jobs
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.Images as Images
-import qualified OpenAI.Servant.V1.Messages as Messages
 import qualified OpenAI.Servant.V1.Models as Models
 import qualified OpenAI.Servant.V1.Moderations as Moderations
+import qualified OpenAI.Servant.V1.Threads.Runs as Threads.Runs
 import qualified OpenAI.Servant.V1.Threads as Threads
+import qualified OpenAI.Servant.V1.Threads.Messages as Messages
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified Servant.Client as Client
 
@@ -144,6 +152,16 @@ makeMethods clientEnv token = Methods{..}
                 :<|>  deleteMessage
                 )
             )
+      :<|>  (   (\x -> x "assistants=v2")
+            ->  (     createRun
+                :<|>  createThreadAndRun
+                :<|>  listRuns_
+                :<|>  retrieveRun
+                :<|>  modifyRun
+                :<|>  submitToolOutputsToRun
+                :<|>  cancelRun
+                )
+            )
       ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
 
     run :: Client.ClientM a -> IO a
@@ -175,6 +193,7 @@ makeMethods clientEnv token = Methods{..}
     listModels = toVector listModels_
     listAssistants a b c d = toVector (listAssistants_ a b c d)
     listMessages a = toVector (listMessages_ a)
+    listRuns a b c d e = toVector (listRuns_ a b c d e)
 
 -- | Hard-coded boundary to simplify the user-experience
 --
@@ -239,11 +258,11 @@ data Methods = Methods
     , uploadFile :: UploadFile -> IO FileObject
     , listFiles
         :: Maybe Files.Purpose
-        -- ^
+        -- ^ purpose
         -> Maybe Natural
         -- ^ limit
         -> Maybe Order
-        -- ^
+        -- ^ order
         -> Maybe Text
         -- ^ after
         -> IO (Vector FileObject)
@@ -314,7 +333,7 @@ data Methods = Methods
         :: Text
         -- ^ Assistant ID
         -> IO DeletionStatus
-    , createThread :: CreateThread -> IO ThreadObject
+    , createThread :: Thread -> IO ThreadObject
     , retrieveThread
         :: Text
         -- ^ Thread ID
@@ -358,6 +377,55 @@ data Methods = Methods
         -> Text
         -- ^ Message ID
         -> IO DeletionStatus
+    , createRun
+        :: Text
+        -- ^ Thread ID
+        -> Maybe Text
+        -- ^ include[]
+        -> CreateRun
+        -- ^
+        -> IO RunObject
+    , createThreadAndRun :: CreateThreadAndRun -> IO RunObject
+    , listRuns
+        :: Text
+        -- ^ Thread ID
+        -> Maybe Natural
+        -- ^ limit
+        -> Maybe Text
+        -- ^ order
+        -> Maybe Text
+        -- ^ after
+        -> Maybe Text
+        -- ^ before
+        -> IO (Vector RunObject)
+    , retrieveRun
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ RunID
+        -> IO RunObject
+    , modifyRun
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Run ID
+        -> ModifyRun
+        -- ^
+        -> IO RunObject
+    , submitToolOutputsToRun
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Run ID
+        -> SubmitToolOutputsToRun
+        -- ^
+        -> IO RunObject
+    , cancelRun
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Run ID
+        -> IO RunObject
     }
 
 -- | Servant API
@@ -377,4 +445,5 @@ type API
         :<|>  Assistants.API
         :<|>  Threads.API
         :<|>  Messages.API
+        :<|>  Threads.Runs.API
         )

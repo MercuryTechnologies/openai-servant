@@ -19,28 +19,26 @@ import OpenAI.Servant.V1.Files (FileObject(..), Order(..), UploadFile(..))
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit(..))
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation(..))
 import OpenAI.Servant.V1.Message (Message(..))
-import OpenAI.Servant.V1.Messages (MessageObject(..), ModifyMessage(..))
 import OpenAI.Servant.V1.Moderations (CreateModeration(..))
+import OpenAI.Servant.V1.Threads.Messages (MessageObject(..), ModifyMessage(..))
+import OpenAI.Servant.V1.Tool (Tool(..), ToolChoice(..))
+import OpenAI.Servant.V1.ToolCall (ToolCall(..))
+import Prelude hiding (id)
 
 import OpenAI.Servant.V1.Assistants
     (CreateAssistant(..), ModifyAssistant(..), AssistantObject(..))
 import OpenAI.Servant.V1.Audio.Speech
     (_CreateSpeech, CreateSpeech(..), Voice(..))
 import OpenAI.Servant.V1.Chat.Completions
-    ( CallableFunction(..)
-    , CalledFunction(..)
-    , CreateChatCompletion(..)
-    , Modality(..)
-    , Tool(..)
-    , ToolCall(..)
-    , ToolChoice(..)
-    )
+    (CreateChatCompletion(..), Modality(..))
 import OpenAI.Servant.V1.FineTuning.Jobs
     (CreateFineTuningJob(..), Hyperparameters(..), JobObject(..))
 import OpenAI.Servant.V1.Images.Generations
     (CreateImage(..), Quality(..), Style(..))
 import OpenAI.Servant.V1.Threads
-    (CreateThread(..), ModifyThread(..), ThreadObject(..))
+    (ModifyThread(..), Thread(..), ThreadObject(..))
+import OpenAI.Servant.V1.Threads.Runs
+    (CreateRun(..), ModifyRun(..), RunObject(..))
 import OpenAI.Servant.V1.Uploads
     ( AddUploadPart(..)
     , CompleteUpload(..)
@@ -57,7 +55,8 @@ import qualified OpenAI.Servant.V1.Chat.Completions as Completions
 import qualified OpenAI.Servant.V1.Files as Files
 import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
 import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
-import Prelude hiding (id)
+import qualified OpenAI.Servant.V1.Tool as Tool
+import qualified OpenAI.Servant.V1.ToolCall as ToolCall
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
 import qualified Test.Tasty as Tasty
@@ -174,7 +173,7 @@ main = do
                             , tool_calls = Just
                                 [ ToolCall_Function
                                     { id = "call_bzE95mjMMFqeanfY2sL6Sdir"
-                                    , function = CalledFunction
+                                    , function = ToolCall.Function
                                       { name = "hello"
                                       , arguments = "{}"
                                       }
@@ -207,7 +206,7 @@ main = do
                     , top_p = Just 1
                     , tools = Just
                         [ Tool_Function
-                            { function = CallableFunction
+                            { function = Tool.Function
                               { description =
                                   Just "Use the hello command line tool"
                               , name = "hello"
@@ -471,7 +470,7 @@ main = do
 
     let threadsTest = do
             HUnit.testCase "Thread operations" do
-                ThreadObject{ id } <- createThread CreateThread
+                ThreadObject{ id } <- createThread Thread
                     { messages = Just
                         [ User
                             { content = [ "Hello, world!" ]
@@ -496,7 +495,7 @@ main = do
 
     let messagesTest = do
             HUnit.testCase "Message operations" do
-                ThreadObject{ id = threadId } <- createThread CreateThread
+                ThreadObject{ id = threadId } <- createThread Thread
                     { messages = Just
                         [ User
                             { content = [ "Hi, how can I help you!" ]
@@ -526,6 +525,63 @@ main = do
 
                 return ()
 
+    let runsTest = do
+            HUnit.testCase "Run operations" do
+                ThreadObject{ id = threadId } <- createThread Thread
+                    { messages = Just
+                        [ User
+                            { content = [ "Hello, world!" ]
+                            , attachments = Nothing
+                            , metadata = Nothing
+                            }
+                        ]
+                    , tool_resources = Nothing
+                    , metadata = Nothing
+                    }
+
+                AssistantObject{ id = assistantId } <- createAssistant CreateAssistant
+                    { model = chatModel
+                    , name = Nothing
+                    , description = Nothing
+                    , instructions = Nothing
+                    , tools = Nothing
+                    , tool_resources = Nothing
+                    , metadata = Nothing
+                    , temperature = Nothing
+                    , top_p = Nothing
+                    , response_format = Nothing
+                    }
+
+                RunObject{ id = runId } <- createRun threadId Nothing CreateRun
+                    { assistant_id = assistantId
+                    , model = Nothing
+                    , instructions = Nothing
+                    , additional_instructions = Nothing
+                    , additional_messages = Nothing
+                    , tools = Nothing
+                    , metadata = Nothing
+                    , temperature = Nothing
+                    , top_p = Nothing
+                    , max_prompt_tokens = Nothing
+                    , max_completion_tokens = Nothing
+                    , truncation_strategy = Nothing
+                    , tool_choice = Nothing
+                    , parallel_tool_calls = Nothing
+                    , response_format = Nothing
+                    }
+
+                _ <- listRuns threadId Nothing Nothing Nothing Nothing
+
+                _ <- retrieveRun threadId runId
+
+                _ <- modifyRun threadId runId ModifyRun
+                    { metadata = Nothing
+                    }
+
+                _ <- deleteThread threadId
+
+                return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -546,6 +602,7 @@ main = do
                 , assistantsTest
                 , threadsTest
                 , messagesTest
+                , runsTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

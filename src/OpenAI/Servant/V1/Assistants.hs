@@ -111,8 +111,8 @@ data AssistantObject = AssistantObject
 
 -- | Servant API
 type API =
-        "assistants"
-    :>  Header' '[Required, Strict] "OpenAI-Beta" Text
+        Header' '[Required, Strict] "OpenAI-Beta" Text
+    :>  "assistants"
     :>  (         ReqBody '[JSON] CreateAssistant
               :>  Post '[JSON] AssistantObject
         :<|>      QueryParam "limit" Natural

@@ -1,5 +1,5 @@
 -- | @\/v1\/threads/:thread_id/messages@
-module OpenAI.Servant.V1.Messages
+module OpenAI.Servant.V1.Threads.Messages
     ( -- * Main types
         Message(..)
       , ModifyMessage(..)
@@ -111,8 +111,8 @@ data MessageObject = MessageObject
 
 -- | Servant API
 type API =
-        "threads"
-    :>  Header' '[Required, Strict] "OpenAI-Beta" Text
+        Header' '[Required, Strict] "OpenAI-Beta" Text
+    :>  "threads"
     :>  (         Capture "thread_id" Text
               :>  "messages"
               :>  ReqBody '[JSON] Message
