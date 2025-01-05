@@ -34,6 +34,8 @@ import OpenAI.Servant.V1.ToolCall
 import OpenAI.Servant.V1.ToolResources
 import OpenAI.Servant.V1.Usage
 
+import qualified OpenAI.Servant.V1.Threads.Runs.Steps as Steps
+
 -- | Controls for how a thread will be truncated prior to the run
 data TruncationStrategy
     = Auto
@@ -265,4 +267,5 @@ type API =
               :>  Capture "run_id" Text
               :>  "cancel"
               :>  Post '[JSON] RunObject
+        :<|>      Steps.API
         )

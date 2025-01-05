@@ -468,31 +468,6 @@ main = do
 
                 return ()
 
-    let threadsTest = do
-            HUnit.testCase "Thread operations" do
-                ThreadObject{ id } <- createThread Thread
-                    { messages = Just
-                        [ User
-                            { content = [ "Hello, world!" ]
-                            , attachments = Nothing
-                            , metadata = Nothing
-                            }
-                        ]
-                    , tool_resources = Nothing
-                    , metadata = Nothing
-                    }
-
-                _ <- retrieveThread id
-
-                _ <- modifyThread id ModifyThread
-                    { tool_resources = Nothing
-                    , metadata = Nothing
-                    }
-
-                _ <- deleteThread id
-
-                return ()
-
     let messagesTest = do
             HUnit.testCase "Message operations" do
                 ThreadObject{ id = threadId } <- createThread Thread
@@ -525,8 +500,8 @@ main = do
 
                 return ()
 
-    let runsTest = do
-            HUnit.testCase "Run operations" do
+    let threadsRunsStepsTest = do
+            HUnit.testCase "Thread/Run/Step operations" do
                 ThreadObject{ id = threadId } <- createThread Thread
                     { messages = Just
                         [ User
@@ -536,6 +511,13 @@ main = do
                             }
                         ]
                     , tool_resources = Nothing
+                    , metadata = Nothing
+                    }
+
+                _ <- retrieveThread threadId
+
+                _ <- modifyThread threadId ModifyThread
+                    { tool_resources = Nothing
                     , metadata = Nothing
                     }
 
@@ -600,9 +582,8 @@ main = do
                 , createImageVariationMaximalTest
                 , createModerationTest
                 , assistantsTest
-                , threadsTest
                 , messagesTest
-                , runsTest
+                , threadsRunsStepsTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

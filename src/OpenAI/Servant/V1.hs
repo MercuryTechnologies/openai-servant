@@ -27,6 +27,7 @@ import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import OpenAI.Servant.V1.Order (Order)
 import OpenAI.Servant.V1.Threads (Thread, ModifyThread, ThreadObject)
 import OpenAI.Servant.V1.Threads.Messages (ModifyMessage, MessageObject)
+import OpenAI.Servant.V1.Threads.Runs.Steps (RunStepObject(..))
 import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
@@ -160,6 +161,8 @@ makeMethods clientEnv token = Methods{..}
                 :<|>  modifyRun
                 :<|>  submitToolOutputsToRun
                 :<|>  cancelRun
+                :<|>  listRunSteps_
+                :<|>  retrieveRunStep
                 )
             )
       ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
@@ -194,6 +197,7 @@ makeMethods clientEnv token = Methods{..}
     listAssistants a b c d = toVector (listAssistants_ a b c d)
     listMessages a = toVector (listMessages_ a)
     listRuns a b c d e = toVector (listRuns_ a b c d e)
+    listRunSteps a b c d e f g = toVector (listRunSteps_ a b c d e f g)
 
 -- | Hard-coded boundary to simplify the user-experience
 --
@@ -426,6 +430,32 @@ data Methods = Methods
         -> Text
         -- ^ Run ID
         -> IO RunObject
+    , listRunSteps
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Run ID
+        -> Maybe Natural
+        -- ^ limit
+        -> Maybe Text
+        -- ^ order
+        -> Maybe Text
+        -- ^ after
+        -> Maybe Text
+        -- ^ before
+        -> Maybe Text
+        -- ^ include[]
+        -> IO (Vector RunStepObject)
+    , retrieveRunStep
+        :: Text
+        -- ^ Thread ID
+        -> Text
+        -- ^ Run ID
+        -> Text
+        -- ^ Step ID
+        -> Maybe Text
+        -- ^ include[]
+        -> IO RunStepObject
     }
 
 -- | Servant API

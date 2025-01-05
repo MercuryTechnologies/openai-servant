@@ -57,6 +57,7 @@ library
                         OpenAI.Servant.V1.Threads
                         OpenAI.Servant.V1.Threads.Messages
                         OpenAI.Servant.V1.Threads.Runs
+                        OpenAI.Servant.V1.Threads.Runs.Steps
                         OpenAI.Servant.V1.Tool
                         OpenAI.Servant.V1.ToolCall
                         OpenAI.Servant.V1.ToolResources
