@@ -51,6 +51,8 @@ import OpenAI.Servant.V1.VectorStores
     , ModifyVectorStore(..)
     , VectorStoreObject(..)
     )
+import OpenAI.Servant.V1.VectorStores.Files
+    (CreateVectorStoreFile(..), VectorStoreFileObject(..))
 
 import qualified Data.Text as Text
 import qualified Network.HTTP.Client as HTTP.Client
@@ -241,7 +243,7 @@ main = do
 
     let fineTuningTest = do
             HUnit.testCase "Fine-tuning and File operations - maximal" do
-                FileObject{ id = trainingId }<- uploadFile UploadFile
+                FileObject{ id = trainingId } <- uploadFile UploadFile
                     { file =
                         "tasty/data/v1/fine_tuning/jobs/training_data.jsonl"
                     , purpose = Files.Fine_Tune
@@ -569,30 +571,41 @@ main = do
 
                 return ()
 
-    let vectorStoresTest = do
-            HUnit.testCase "Vector store operations" do
-                FileObject{ id = fileId }<- uploadFile UploadFile
+    let vectorStoreFilesTest = do
+            HUnit.testCase "Vector store file operations" do
+                FileObject{ id = fileId } <- uploadFile UploadFile
                     { file = "tasty/data/v1/vector_stores/index.html"
                     , purpose = Files.Assistants
                     }
 
                 VectorStoreObject{ id = vectorStoreId } <- createVectorStore CreateVectorStore
-                    { file_ids = [ fileId ]
+                    { file_ids = []
                     , name = Nothing
                     , expires_after = Nothing
                     , chunking_strategy = Nothing
                     , metadata = Nothing
                     }
 
+                VectorStoreFileObject{ id = vectorStoreFileId } <- createVectorStoreFile vectorStoreId CreateVectorStoreFile
+                    { file_id = fileId
+                    , chunking_strategy = Nothing
+                    }
+
                 _ <- listVectorStores Nothing Nothing Nothing Nothing
 
+                _ <- listVectorStoreFiles vectorStoreId Nothing Nothing Nothing Nothing Nothing
+
                 _ <- retrieveVectorStore vectorStoreId
+
+                _ <- retrieveVectorStoreFile vectorStoreId vectorStoreFileId
 
                 _ <- modifyVectorStore vectorStoreId ModifyVectorStore
                     { name = Nothing
                     , expires_after = Nothing
                     , metadata = Nothing
                     }
+
+                _ <- deleteVectorStoreFile vectorStoreId vectorStoreFileId
 
                 _ <- deleteVectorStore vectorStoreId
 
@@ -620,7 +633,7 @@ main = do
                 , assistantsTest
                 , messagesTest
                 , threadsRunsStepsTest
-                , vectorStoresTest
+                , vectorStoreFilesTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)

@@ -65,6 +65,7 @@ library
                         OpenAI.Servant.V1.Uploads
                         OpenAI.Servant.V1.Usage
                         OpenAI.Servant.V1.VectorStores
+                        OpenAI.Servant.V1.VectorStores.Files
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds
                       , DeriveAnyClass

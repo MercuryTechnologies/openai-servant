@@ -53,6 +53,8 @@ import OpenAI.Servant.V1.Uploads
     (AddUploadPart, CompleteUpload, CreateUpload, PartObject, UploadObject)
 import OpenAI.Servant.V1.VectorStores
     (CreateVectorStore(..), ModifyVectorStore(..), VectorStoreObject(..))
+import OpenAI.Servant.V1.VectorStores.Files
+    (CreateVectorStoreFile(..), VectorStoreFileObject(..))
 
 import qualified Control.Exception as Exception
 import qualified Data.Text as Text
@@ -72,6 +74,7 @@ import qualified OpenAI.Servant.V1.Threads as Threads
 import qualified OpenAI.Servant.V1.Threads.Messages as Messages
 import qualified OpenAI.Servant.V1.Uploads as Uploads
 import qualified OpenAI.Servant.V1.VectorStores as VectorStores
+import qualified OpenAI.Servant.V1.VectorStores.Files as VectorStores.Files
 import qualified Servant.Client as Client
 
 -- | Convenient utility to get a `ClientEnv` for the most common use case
@@ -177,6 +180,13 @@ makeMethods clientEnv token = Methods{..}
                 :<|>  deleteVectorStore
                 )
             )
+      :<|>  (   (\x -> x "assistants=v2")
+            ->  (     createVectorStoreFile
+                :<|>  listVectorStoreFiles_
+                :<|>  retrieveVectorStoreFile
+                :<|>  deleteVectorStoreFile
+                )
+            )
       ) = Client.hoistClient @API Proxy run (Client.client @API Proxy) authorization
 
     run :: Client.ClientM a -> IO a
@@ -211,6 +221,8 @@ makeMethods clientEnv token = Methods{..}
     listRuns a b c d e = toVector (listRuns_ a b c d e)
     listRunSteps a b c d e f g = toVector (listRunSteps_ a b c d e f g)
     listVectorStores a b c d = toVector (listVectorStores_ a b c d)
+    listVectorStoreFiles a b c d e f =
+        toVector (listVectorStoreFiles_ a b c d e f)
 
 -- | Hard-coded boundary to simplify the user-experience
 --
@@ -494,6 +506,38 @@ data Methods = Methods
         :: Text
         -- ^ Vector store ID
         -> IO DeletionStatus
+    , createVectorStoreFile
+        :: Text
+        -- ^ Vector store ID
+        -> CreateVectorStoreFile
+        -- ^
+        -> IO VectorStoreFileObject
+    , listVectorStoreFiles
+        :: Text
+        -- ^ Vector store ID
+        -> Maybe Natural
+        -- ^ limit
+        -> Maybe Order
+        -- ^ order
+        -> Maybe Text
+        -- ^ after
+        -> Maybe Text
+        -- ^ before
+        -> Maybe VectorStores.Files.Status
+        -- ^ filter
+        -> IO (Vector VectorStoreFileObject)
+    , retrieveVectorStoreFile
+        :: Text
+        -- ^ Vector store ID
+        -> Text
+        -- ^ Vectore store file ID
+        -> IO VectorStoreFileObject
+    , deleteVectorStoreFile
+        :: Text
+        -- ^ Vector store ID
+        -> Text
+        -- ^ Vectore store file ID
+        -> IO DeletionStatus
     }
 
 -- | Servant API
@@ -515,4 +559,5 @@ type API
         :<|>  Messages.API
         :<|>  Threads.Runs.API
         :<|>  VectorStores.API
+        :<|>  VectorStores.Files.API
         )
