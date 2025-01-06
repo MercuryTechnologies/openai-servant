@@ -23,6 +23,7 @@ module OpenAI.Servant.V1.Threads.Runs.Steps
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.Usage
 
 -- | The status of the run step
@@ -156,7 +157,7 @@ type API =
           :>  Capture "run_id" Text
           :>  "steps"
           :>  QueryParam "limit" Natural
-          :>  QueryParam "order" Text
+          :>  QueryParam "order" Order
           :>  QueryParam "after" Text
           :>  QueryParam "before" Text
           :>  QueryParam "include[]" Text

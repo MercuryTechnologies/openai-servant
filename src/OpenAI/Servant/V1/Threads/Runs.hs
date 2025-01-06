@@ -27,6 +27,7 @@ import OpenAI.Servant.V1.AutoOr
 import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Message
+import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.ResponseFormat
 import OpenAI.Servant.V1.Threads (Thread)
 import OpenAI.Servant.V1.Tool
@@ -243,7 +244,7 @@ type API =
         :<|>      Capture "thread_id" Text
               :>  "runs"
               :>  QueryParam "limit" Natural
-              :>  QueryParam "order" Text
+              :>  QueryParam "order" Order
               :>  QueryParam "after" Text
               :>  QueryParam "before" Text
               :>  Get '[JSON] (ListOf RunObject)

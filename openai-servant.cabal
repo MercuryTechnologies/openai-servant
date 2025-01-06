@@ -37,6 +37,7 @@ library
                         OpenAI.Servant.V1.AutoOr
                         OpenAI.Servant.V1.Batches
                         OpenAI.Servant.V1.Chat.Completions
+                        OpenAI.Servant.V1.ChunkingStrategy
                         OpenAI.Servant.V1.DeletionStatus
                         OpenAI.Servant.V1.Embeddings
                         OpenAI.Servant.V1.Error
@@ -63,6 +64,7 @@ library
                         OpenAI.Servant.V1.ToolResources
                         OpenAI.Servant.V1.Uploads
                         OpenAI.Servant.V1.Usage
+                        OpenAI.Servant.V1.VectorStores
     other-modules:      OpenAI.Servant.Prelude
     default-extensions: DataKinds
                       , DeriveAnyClass

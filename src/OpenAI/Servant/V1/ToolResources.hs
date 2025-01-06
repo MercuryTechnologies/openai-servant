@@ -6,46 +6,19 @@ module OpenAI.Servant.V1.ToolResources
       -- * Other types
     , CodeInterpreterResources(..)
     , Static(..)
-    , ChunkingStrategy(..)
     , VectorStore(..)
     , FileSearchResources(..)
     ) where
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
+import OpenAI.Servant.V1.ChunkingStrategy
 
 -- | Resources for the code search tool
 data CodeInterpreterResources = CodeInterpreterResources
     { file_ids :: Maybe (Vector Text)
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON, ToJSON)
-
--- | Static chunking strategy
-data Static = Static
-    { max_chunk_size_tokens :: Natural
-    , chunk_overlap_tokens :: Natural
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON, ToJSON)
-
--- | The chunking strategy used to chunk the file(s)
-data ChunkingStrategy = ChunkingStrategy_Static{ static :: Static }
-    deriving stock (Generic, Show)
-
-chunkingStrategyOptions :: Options
-chunkingStrategyOptions = aesonOptions
-    { sumEncoding =
-        TaggedObject{ tagFieldName = "type", contentsFieldName = "" }
-
-    , tagSingleConstructors = True
-
-    , constructorTagModifier = stripPrefix "ChunkingStrategy_"
-    }
-
-instance ToJSON ChunkingStrategy where
-    toJSON = genericToJSON chunkingStrategyOptions
-
-instance FromJSON ChunkingStrategy where
-    parseJSON = genericParseJSON chunkingStrategyOptions
 
 -- | A helper to create a vector store with file_ids and attach it to this
 -- assistant

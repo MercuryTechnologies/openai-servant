@@ -46,6 +46,11 @@ import OpenAI.Servant.V1.Uploads
     , PartObject(..)
     , UploadObject(..)
     )
+import OpenAI.Servant.V1.VectorStores
+    ( CreateVectorStore(..)
+    , ModifyVectorStore(..)
+    , VectorStoreObject(..)
+    )
 
 import qualified Data.Text as Text
 import qualified Network.HTTP.Client as HTTP.Client
@@ -564,6 +569,37 @@ main = do
 
                 return ()
 
+    let vectorStoresTest = do
+            HUnit.testCase "Vector store operations" do
+                FileObject{ id = fileId }<- uploadFile UploadFile
+                    { file = "tasty/data/v1/vector_stores/index.html"
+                    , purpose = Files.Assistants
+                    }
+
+                VectorStoreObject{ id = vectorStoreId } <- createVectorStore CreateVectorStore
+                    { file_ids = [ fileId ]
+                    , name = Nothing
+                    , expires_after = Nothing
+                    , chunking_strategy = Nothing
+                    , metadata = Nothing
+                    }
+
+                _ <- listVectorStores Nothing Nothing Nothing Nothing
+
+                _ <- retrieveVectorStore vectorStoreId
+
+                _ <- modifyVectorStore vectorStoreId ModifyVectorStore
+                    { name = Nothing
+                    , expires_after = Nothing
+                    , metadata = Nothing
+                    }
+
+                _ <- deleteVectorStore vectorStoreId
+
+                _ <- deleteFile fileId
+
+                return ()
+
     let tests =
                 speechTests
             <>  [ transcriptionTest
@@ -584,6 +620,7 @@ main = do
                 , assistantsTest
                 , messagesTest
                 , threadsRunsStepsTest
+                , vectorStoresTest
                 ]
 
     Tasty.defaultMain (Tasty.testGroup "Tests" tests)
