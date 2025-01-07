@@ -3,7 +3,13 @@ name:               openai
 version:            1.0.0
 synopsis:           Servant bindings to OpenAI
 description:        This package provides comprehensive and type-safe bindings
-                    to OpenAI using Servant
+                    to OpenAI, providing both a Servant interface and
+                    non-Servant interface for convenience.
+                    .
+                    Read the @README@ below for a fully worked usage example.
+                    .
+                    Otherwise, browse the "OpenAI.V1" module, which is the
+                    intended package entrypoint.
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Gabriella Gonzalez

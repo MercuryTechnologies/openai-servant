@@ -1,4 +1,43 @@
 -- | @\/v1@
+--
+-- Example usage:
+--
+-- @
+-- {-# LANGUAGE DuplicateRecordFields #-}
+-- {-# LANGUAGE NamedFieldPuns        #-}
+-- {-# LANGUAGE OverloadedStrings     #-}
+-- {-# LANGUAGE OverloadedLists       #-}
+--
+-- module Main where
+--
+-- import "Data.Foldable" (`Data.Foldable.traverse_`)
+-- import "OpenAI.V1"
+-- import "OpenAI.V1.Chat.Completions"
+--
+-- import qualified "Data.Text" as Text
+-- import qualified "Data.Text.IO" as Text.IO
+-- import qualified "System.Environment" as Environment
+--
+-- main :: `IO` ()
+-- main = do
+--     key <- Environment.`System.Environment.getEnv` \"OPENAI_KEY\"
+--
+--     clientEnv <- `OpenAI.V1.getClientEnv` \"https://api.openai.com\"
+--
+--     let `OpenAI.V1.Methods`{ createChatCompletion } = `OpenAI.V1.makeMethods` clientEnv (Text.`Data.Text.pack` key)
+--
+--     text <- Text.IO.`Data.Text.IO.getLine`
+--
+--     `OpenAI.V1.Chat.Completions.ChatCompletionObject`{ `OpenAI.V1.Chat.Completions.choices` } <- createChatCompletion `OpenAI.V1.Chat.Completions._CreateChatCompletion`
+--         { `OpenAI.V1.Chat.Completions.messages` = [ `OpenAI.V1.Chat.Completions.User`{ `OpenAI.V1.Chat.Completions.content` = [ `OpenAI.V1.Chat.Completions.Text`{ `OpenAI.V1.Chat.Completions.text` } ], `OpenAI.V1.Chat.Completions.name` = `Nothing` } ]
+--         , `OpenAI.V1.Chat.Completions.model` = \"gpt-4o-mini\"
+--         }
+--
+--     let display `OpenAI.V1.Chat.Completions.Choice`{ `OpenAI.V1.Chat.Completions.message` } = Text.IO.`Data.Text.IO.putStrLn` (`OpenAI.V1.Chat.Completions.messageToContent` message)
+--
+--     `Data.Foldable.traverse_` display choices
+-- @
+
 module OpenAI.V1
     ( -- * Methods
       getClientEnv
