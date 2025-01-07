@@ -172,7 +172,7 @@ data AudioParameters = AudioParameters
       deriving anyclass (ToJSON)
 
 -- | Specifies the latency tier to use for processing the request
-data ServiceTier = Auto | Default
+data ServiceTier = Default
     deriving stock (Generic, Show)
 
 instance FromJSON ServiceTier where
@@ -199,7 +199,7 @@ data CreateChatCompletion = CreateChatCompletion
     , presence_penalty :: Maybe Double
     , response_format :: Maybe ResponseFormat
     , seed :: Maybe Integer
-    , service_tier :: Maybe ServiceTier
+    , service_tier :: Maybe (AutoOr ServiceTier)
     , stop :: Maybe (Vector Text)
     , temperature :: Maybe Double
     , top_p :: Maybe Double

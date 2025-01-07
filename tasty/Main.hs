@@ -11,6 +11,7 @@
 module Main where
 
 import OpenAI.Servant.V1 (Methods(..))
+import OpenAI.Servant.V1.AutoOr (AutoOr(..))
 import OpenAI.Servant.V1.Audio.Transcriptions (CreateTranscription(..))
 import OpenAI.Servant.V1.Audio.Translations (CreateTranslation(..))
 import OpenAI.Servant.V1.Batches (BatchObject(..), CreateBatch(..))
@@ -209,7 +210,7 @@ main = do
                     , presence_penalty = Just 0
                     , response_format = Just Completions.ResponseFormat_Text
                     , seed = Just 0
-                    , service_tier = Just Completions.Auto
+                    , service_tier = Just Auto
                     , stop = Just [ ">>>" ]
                     , temperature = Just 1
                     , top_p = Just 1
