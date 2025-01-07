@@ -13,6 +13,7 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Images.Image
 import OpenAI.Servant.V1.Images.ResponseFormat
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Models (Model(..))
 
 import qualified Data.Text as Text
 
@@ -21,7 +22,7 @@ data CreateImageEdit = CreateImageEdit
     { image :: FilePath
     , prompt :: Text
     , mask :: Maybe FilePath
-    , model :: Maybe Text
+    , model :: Maybe Model
     , n :: Maybe Natural
     , size :: Maybe Text
     , response_format :: Maybe ResponseFormat
@@ -40,11 +41,11 @@ _CreateImageEdit = CreateImageEdit
     }
 
 instance ToMultipart Tmp CreateImageEdit where
-    toMultipart CreateImageEdit{..} = MultipartData{..}
+    toMultipart CreateImageEdit{ ..} = MultipartData{..}
       where
         inputs =
                 input "prompt" prompt
-            <>  foldMap (input "model") model
+            <>  foldMap (input "model" . text) model
             <>  foldMap (input "n" . renderIntegral) n
             <>  foldMap (input "size") size
             <>  foldMap (input "response_format" . toUrlPiece) response_format

@@ -1,7 +1,8 @@
 -- | @\/v1\/files@
 module OpenAI.Servant.V1.Files
     ( -- * Main types
-      UploadFile(..)
+      FileID(..)
+    , UploadFile(..)
     , _UploadFile
     , FileObject(..)
     -- * Other types
@@ -18,6 +19,10 @@ import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Order
 
 import qualified Data.Text as Text
+
+-- | File ID
+newtype FileID = FileID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | UploadFile body
 data UploadFile = UploadFile
@@ -43,7 +48,7 @@ instance ToMultipart Tmp UploadFile where
 
 -- | The File object represents a document that has been uploaded to OpenAI
 data FileObject = FileObject
-    { id :: Text
+    { id :: FileID
     , bytes :: Natural
     , created_at :: POSIXTime
     , filename :: Text
@@ -96,11 +101,11 @@ type API =
               :>  QueryParam "order" Order
               :>  QueryParam "after" Text
               :>  Get '[JSON] (ListOf FileObject)
-        :<|>      Capture "file_id" Text
+        :<|>      Capture "file_id" FileID
               :>  Get '[JSON] FileObject
-        :<|>      Capture "file_id" Text
+        :<|>      Capture "file_id" FileID
               :>  Delete '[JSON] DeletionStatus
-        :<|>      Capture "file_id" Text
+        :<|>      Capture "file_id" FileID
               :>  "content"
               :>  Get '[OctetStream] ByteString
         )

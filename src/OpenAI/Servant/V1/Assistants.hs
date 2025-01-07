@@ -1,7 +1,8 @@
 -- | @\/v1\/assistants@
 module OpenAI.Servant.V1.Assistants
     ( -- * Main types
-      CreateAssistant(..)
+      AssistantID(..)
+    , CreateAssistant(..)
     , _CreateAssistant
     , ModifyAssistant(..)
     , _ModifyAssistant
@@ -24,14 +25,19 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
 import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.ResponseFormat
 import OpenAI.Servant.V1.Tool
 import OpenAI.Servant.V1.ToolResources
 
+-- | AssistantID
+newtype AssistantID = AssistantID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
+
 -- | Request body for @\/v1\/assistants@
 data CreateAssistant = CreateAssistant
-    { model :: Text
+    { model :: Model
     , name :: Maybe Text
     , description :: Maybe Text
     , instructions :: Maybe Text
@@ -62,7 +68,7 @@ _CreateAssistant = CreateAssistant
 
 -- | Request body for @\/v1\/assistants/:assistant_id@
 data ModifyAssistant = ModifyAssistant
-    { model :: Text
+    { model :: Model
     , name :: Maybe Text
     , description :: Maybe Text
     , instructions :: Maybe Text
@@ -93,12 +99,12 @@ _ModifyAssistant = ModifyAssistant
 
 -- | Represents an assistant that can call the model and use tools.
 data AssistantObject = AssistantObject
-    { id :: Text
+    { id :: AssistantID
     , object :: Text
     , created_at :: POSIXTime
     , name :: Maybe Text
     , description :: Maybe Text
-    , model :: Text
+    , model :: Model
     , instructions :: Maybe Text
     , tools :: Maybe (Vector Tool)
     , tool_resources :: Maybe ToolResources
@@ -120,11 +126,11 @@ type API =
               :>  QueryParam "after" Text
               :>  QueryParam "before" Text
               :>  Get '[JSON] (ListOf AssistantObject)
-        :<|>      Capture "assistant_id" Text
+        :<|>      Capture "assistant_id" AssistantID
               :>  Get '[JSON] AssistantObject
-        :<|>      Capture "assistant_id" Text
+        :<|>      Capture "assistant_id" AssistantID
               :>  ReqBody '[JSON] ModifyAssistant
               :>  Post '[JSON] AssistantObject
-        :<|>      Capture "assistant_id" Text
+        :<|>      Capture "assistant_id" AssistantID
               :>  Delete '[JSON] DeletionStatus
         )

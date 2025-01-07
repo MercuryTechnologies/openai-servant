@@ -14,20 +14,22 @@ module OpenAI.Servant.V1.Audio.Transcriptions
     ) where
 
 import OpenAI.Servant.Prelude as OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Models (Model(..))
 
 import qualified Data.Text as Text
 
 -- | Request body for @\/v1\/audio\/transcriptions@
 data CreateTranscription = CreateTranscription
     { file :: FilePath
-    , model :: Text
+    , model :: Model
     , language :: Maybe Text
     , prompt :: Maybe Text
     , temperature :: Maybe Double
     } deriving stock (Generic, Show)
 
 instance ToMultipart Tmp CreateTranscription where
-    toMultipart CreateTranscription{..} = MultipartData{..}
+    toMultipart CreateTranscription{ model = Model model, ..} =
+        MultipartData{..}
       where
         inputs =
                 input "model" model

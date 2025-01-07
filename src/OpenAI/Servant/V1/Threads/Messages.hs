@@ -1,7 +1,8 @@
 -- | @\/v1\/threads/:thread_id/messages@
 module OpenAI.Servant.V1.Threads.Messages
     ( -- * Main types
-        Message(..)
+        MessageID(..)
+      , Message(..)
       , ModifyMessage(..)
       , _ModifyMessage
       , MessageObject(..)
@@ -18,9 +19,17 @@ module OpenAI.Servant.V1.Threads.Messages
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Assistants (AssistantID)
 import OpenAI.Servant.V1.DeletionStatus
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Message
+import OpenAI.Servant.V1.Threads (ThreadID)
+import OpenAI.Servant.V1.Threads.Runs (RunID)
+
+-- | Message ID
+newtype MessageID = MessageID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | Request body for @\/v1\/threads\/:thread_id\/messages\/:message_id@
 data ModifyMessage = ModifyMessage
@@ -51,7 +60,7 @@ data IncompleteDetails = IncompleteDetails
 
 -- | File
 data File = File
-    { file_id :: Text
+    { file_id :: FileID
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
@@ -92,18 +101,18 @@ instance IsString TextObject where
 
 -- | Represents a message within a thread.
 data MessageObject = MessageObject
-    { id :: Text
+    { id :: MessageID
     , object :: Text
     , created_at :: POSIXTime
-    , thread_id :: Text
+    , thread_id :: ThreadID
     , status :: Maybe Status
     , incomplete_details :: Maybe IncompleteDetails
     , completed_at :: Maybe POSIXTime
     , incomplete_at :: Maybe POSIXTime
     , role :: Text
     , content :: Vector (Content TextObject)
-    , assistant_id :: Maybe Text
-    , run_id :: Maybe Text
+    , assistant_id :: Maybe AssistantID
+    , run_id :: Maybe RunID
     , attachments :: Maybe (Vector Attachment)
     , metadata :: Map Text Text
     } deriving (Generic, Show)
@@ -113,24 +122,24 @@ data MessageObject = MessageObject
 type API =
         Header' '[Required, Strict] "OpenAI-Beta" Text
     :>  "threads"
-    :>  (         Capture "thread_id" Text
+    :>  (         Capture "thread_id" ThreadID
               :>  "messages"
               :>  ReqBody '[JSON] Message
               :>  Post '[JSON] MessageObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "messages"
               :>  Get '[JSON] (ListOf MessageObject)
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "messages"
-              :>  Capture "message_id" Text
+              :>  Capture "message_id" MessageID
               :>  Get '[JSON] MessageObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "messages"
-              :>  Capture "message_id" Text
+              :>  Capture "message_id" MessageID
               :>  ReqBody '[JSON] ModifyMessage
               :>  Post '[JSON] MessageObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "messages"
-              :>  Capture "message_id" Text
+              :>  Capture "message_id" MessageID
               :>  Delete '[JSON] DeletionStatus
         )

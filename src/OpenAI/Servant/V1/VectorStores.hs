@@ -1,7 +1,8 @@
 -- | @\/v1\/vector_stores@
 module OpenAI.Servant.V1.VectorStores
     ( -- * Main types
-      CreateVectorStore(..)
+      VectorStoreID(..)
+    , CreateVectorStore(..)
     , _CreateVectorStore
     , ModifyVectorStore(..)
     , _ModifyVectorStore
@@ -9,6 +10,7 @@ module OpenAI.Servant.V1.VectorStores
 
       -- * Other types
     , ExpiresAfter(..)
+    , Status(..)
 
       -- * Servant
     , API
@@ -18,9 +20,14 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
 import OpenAI.Servant.V1.ChunkingStrategy
 import OpenAI.Servant.V1.DeletionStatus
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.VectorStores.FileCounts
+
+-- | Vector store ID
+newtype VectorStoreID = VectorStoreID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | The expiration policy for a vector store.
 data ExpiresAfter = ExpiresAfter
@@ -31,7 +38,7 @@ data ExpiresAfter = ExpiresAfter
 
 -- | Request body for @\/v1\/vector_stores@
 data CreateVectorStore = CreateVectorStore
-    { file_ids :: Vector Text
+    { file_ids :: Vector FileID
     , name :: Maybe Text
     , expires_after :: Maybe ExpiresAfter
     , chunking_strategy :: Maybe (AutoOr ChunkingStrategy)
@@ -64,16 +71,23 @@ _ModifyVectorStore = ModifyVectorStore
     , metadata = Nothing
     }
 
+-- | The status of the vector store
+data Status = Expired | In_Progress | Completed
+    deriving stock (Generic, Show)
+
+instance FromJSON Status where
+    parseJSON = genericParseJSON aesonOptions
+
 -- | A vector store is a collection of processed files can be used by the
 -- @file_search@ tool.
 data VectorStoreObject = VectorStoreObject
-    { id :: Text
+    { id :: VectorStoreID
     , object :: Text
     , created_at :: POSIXTime
     , name :: Maybe Text
     , usage_bytes :: Natural
     , file_counts :: FileCounts
-    , status :: Text
+    , status :: Status
     , expires_after :: Maybe ExpiresAfter
     , expires_at :: Maybe POSIXTime
     , last_active_at :: Maybe POSIXTime
@@ -92,11 +106,11 @@ type API =
               :>  QueryParam "after" Text
               :>  QueryParam "before" Text
               :>  Get '[JSON] (ListOf VectorStoreObject)
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  Get '[JSON] VectorStoreObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  ReqBody '[JSON] ModifyVectorStore
               :>  Post '[JSON] VectorStoreObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  Delete '[JSON] DeletionStatus
         )

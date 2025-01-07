@@ -12,6 +12,7 @@ module OpenAI.Servant.V1.Audio.Speech
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Models (Model)
 
 -- | The voice to use when generating the audio
 --
@@ -32,7 +33,7 @@ instance ToJSON Format where
 
 -- | Request body for @\/v1\/audio\/speech@
 data CreateSpeech = CreateSpeech
-    { model :: Text
+    { model :: Model
     , input :: Text
     , voice :: Voice
     , response_format :: Maybe Format

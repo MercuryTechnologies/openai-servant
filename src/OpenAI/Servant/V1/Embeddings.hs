@@ -12,6 +12,7 @@ module OpenAI.Servant.V1.Embeddings
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Models (Model)
 
 -- | The format to return the embeddings in
 data EncodingFormat = Float | Base64
@@ -23,7 +24,7 @@ instance ToJSON EncodingFormat where
 -- | Request body for @\/v1\/embeddings@
 data CreateEmbeddings = CreateEmbeddings
     { input :: Text
-    , model :: Text
+    , model :: Model
     , encoding_format :: Maybe EncodingFormat
     , dimensions :: Maybe Natural
     , user :: Maybe Text

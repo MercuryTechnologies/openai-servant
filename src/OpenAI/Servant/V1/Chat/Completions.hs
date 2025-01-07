@@ -30,6 +30,7 @@ module OpenAI.Servant.V1.Chat.Completions
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
+import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.ResponseFormat
 import OpenAI.Servant.V1.Tool
 import OpenAI.Servant.V1.ToolCall
@@ -176,7 +177,7 @@ data ServiceTier = Default
     deriving stock (Generic, Show)
 
 instance FromJSON ServiceTier where
-    parseJSON = genericParseJSON aesonOptions
+    parseJSON = genericParseJSON aesonOptions{ tagSingleConstructors = True }
 
 instance ToJSON ServiceTier where
     toJSON = genericToJSON aesonOptions
@@ -184,7 +185,7 @@ instance ToJSON ServiceTier where
 -- | Request body for @\/v1\/chat\/completions@
 data CreateChatCompletion = CreateChatCompletion
     { messages :: Vector (Message (Vector Content))
-    , model :: Text
+    , model :: Model
     , store :: Maybe Bool
     , metadata :: Maybe (Map Text Text)
     , frequency_penalty :: Maybe Double
@@ -280,7 +281,7 @@ data ChatCompletionObject = ChatCompletionObject
     { id :: Text
     , choices :: Vector Choice
     , created :: POSIXTime
-    , model :: Text
+    , model :: Model
     , service_tier :: Maybe ServiceTier
     , system_fingerprint :: Text
     , object :: Text

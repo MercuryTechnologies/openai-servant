@@ -1,7 +1,8 @@
 -- | @\/v1\/vector_stores\/:vector_store_id\/file_batches@
 module OpenAI.Servant.V1.VectorStores.FileBatches
     ( -- * Main types
-      CreateVectorStoreFileBatch(..)
+      VectorStoreFileBatchID(..)
+    , CreateVectorStoreFileBatch(..)
     , _CreateVectorStoreFileBatch
     , VectorStoreFilesBatchObject(..)
 
@@ -11,14 +12,20 @@ module OpenAI.Servant.V1.VectorStores.FileBatches
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.ChunkingStrategy
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Order
+import OpenAI.Servant.V1.VectorStores (VectorStoreID)
 import OpenAI.Servant.V1.VectorStores.FileCounts
 import OpenAI.Servant.V1.VectorStores.Status
 
+-- | Vector store file batch ID
+newtype VectorStoreFileBatchID = VectorStoreFileBatchID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
+
 -- | Request body for @\/v1\/vector_stores\/:vector_store_id\/file_batches@
 data CreateVectorStoreFileBatch = CreateVectorStoreFileBatch
-    { file_ids :: Vector Text
+    { file_ids :: Vector FileID
     , chunking_strategy :: Maybe ChunkingStrategy
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
@@ -31,10 +38,10 @@ _CreateVectorStoreFileBatch = CreateVectorStoreFileBatch
 
 -- | A batch of files attached to a vector store
 data VectorStoreFilesBatchObject = VectorStoreFilesBatchObject
-    { id :: Text
+    { id :: VectorStoreFileBatchID
     , object :: Text
     , created_at :: POSIXTime
-    , vector_store_id :: Text
+    , vector_store_id :: VectorStoreID
     , status :: Status
     , file_counts :: Maybe FileCounts
     } deriving stock (Generic, Show)
@@ -44,22 +51,22 @@ data VectorStoreFilesBatchObject = VectorStoreFilesBatchObject
 type API =
         "vector_stores"
     :>  Header' '[Required, Strict] "OpenAI-Beta" Text
-    :>  (         Capture "vector_store_id" Text
+    :>  (         Capture "vector_store_id" VectorStoreID
               :>  "file_batches"
               :>  ReqBody '[JSON] CreateVectorStoreFileBatch
               :>  Post '[JSON] VectorStoreFilesBatchObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  "file_batches"
-              :>  Capture "batch_id" Text
+              :>  Capture "batch_id" VectorStoreFileBatchID
               :>  Get '[JSON] VectorStoreFilesBatchObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  "file_batches"
-              :>  Capture "batch_id" Text
+              :>  Capture "batch_id" VectorStoreFileBatchID
               :>  "cancel"
               :>  Post '[JSON] VectorStoreFilesBatchObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  "file_batches"
-              :>  Capture "batch_id" Text
+              :>  Capture "batch_id" VectorStoreFileBatchID
               :>  "files"
               :>  QueryParam "limit" Natural
               :>  QueryParam "order" Order

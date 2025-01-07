@@ -1,7 +1,8 @@
 -- | @\/v1\/threads@
 module OpenAI.Servant.V1.Threads
     ( -- Main types
-      Thread(..)
+      ThreadID(..)
+    , Thread(..)
     , _Thread
     , ModifyThread(..)
     , _ModifyThread
@@ -22,6 +23,10 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.Message
 import OpenAI.Servant.V1.ToolResources
+
+-- | Thread ID
+newtype ThreadID = ThreadID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | Request body for @\/v1\/threads@
 data Thread = Thread
@@ -57,7 +62,7 @@ _ModifyThread = ModifyThread
 
 -- | Represents a thread that contains messages
 data ThreadObject = ThreadObject
-    { id :: Text
+    { id :: ThreadID
     , object :: Text
     , created_at :: POSIXTime
     , tool_resources :: Maybe ToolResources
@@ -71,11 +76,11 @@ type API =
     :>  Header' '[Required, Strict] "OpenAI-Beta" Text
     :>  (         ReqBody '[JSON] Thread
               :>  Post '[JSON] ThreadObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  Get '[JSON] ThreadObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  ReqBody '[JSON] ModifyThread
               :>  Post '[JSON] ThreadObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  Delete '[JSON] DeletionStatus
         )

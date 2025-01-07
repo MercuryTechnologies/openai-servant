@@ -76,6 +76,7 @@ library
                       , DerivingStrategies
                       , DuplicateRecordFields
                       , FlexibleInstances
+                      , GeneralizedNewtypeDeriving
                       , OverloadedLists
                       , OverloadedStrings
                       , RecordWildCards

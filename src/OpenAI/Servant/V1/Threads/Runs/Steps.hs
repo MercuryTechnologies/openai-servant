@@ -1,7 +1,8 @@
 -- | @\/v1\/threads\/:thread_id\/runs\/:run_id\/steps@
 module OpenAI.Servant.V1.Threads.Runs.Steps
     ( -- * Main types
-      RunStepObject(..)
+      StepID(..)
+    , RunStepObject(..)
 
       -- * Other types
     , Status(..)
@@ -21,10 +22,19 @@ module OpenAI.Servant.V1.Threads.Runs.Steps
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Assistants (AssistantID)
 import OpenAI.Servant.V1.Error
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Threads.Messages (MessageID)
 import OpenAI.Servant.V1.Order
+import OpenAI.Servant.V1.Threads (ThreadID)
+import OpenAI.Servant.V1.Threads.Runs (RunID)
 import OpenAI.Servant.V1.Usage
+
+-- | Step ID
+newtype StepID = StepID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | The status of the run step
 data Status = In_Progress | Cancelled | Failed | Completed | Expired
@@ -34,7 +44,7 @@ instance FromJSON Status where
     parseJSON = genericParseJSON aesonOptions
 
 -- | Code Interpreter image output
-data Image = Image{ file_id :: Text }
+data Image = Image{ file_id :: FileID }
     deriving stock (Generic, Show)
     deriving anyclass (FromJSON)
 
@@ -77,7 +87,7 @@ instance FromJSON Content where
 
 -- | Result of the file search
 data Result = Result
-    { file_id :: Text
+    { file_id :: FileID
     , file_name :: Text
     , score :: Double
     , content :: Vector Content
@@ -118,7 +128,7 @@ instance FromJSON ToolCall where
 
 -- | The details of the run step
 data StepDetails
-    = Message_Creation{ message_id :: Text }
+    = Message_Creation{ message_id :: MessageID }
     | Tool_Calls{ tool_calls :: Vector ToolCall }
     deriving stock (Generic, Show)
 
@@ -132,12 +142,12 @@ instance FromJSON StepDetails where
 
 -- | Represents a step in execution of a run.
 data RunStepObject = RunStepObject
-    { id :: Text
+    { id :: StepID
     , object :: Text
     , created_at :: POSIXTime
-    , assistant_id :: Text
-    , thread_id :: Text
-    , run_id :: Text
+    , assistant_id :: AssistantID
+    , thread_id :: ThreadID
+    , run_id :: RunID
     , status :: Status
     , step_details :: StepDetails
     , last_error :: Maybe Error
@@ -152,20 +162,23 @@ data RunStepObject = RunStepObject
 
 -- | Servant API
 type API =
-              Capture "thread_id" Text
-          :>  "runs"
-          :>  Capture "run_id" Text
-          :>  "steps"
-          :>  QueryParam "limit" Natural
-          :>  QueryParam "order" Order
-          :>  QueryParam "after" Text
-          :>  QueryParam "before" Text
-          :>  QueryParam "include[]" Text
-          :>  Get '[JSON] (ListOf RunStepObject)
-    :<|>      Capture "thread_id" Text
-          :>  "runs"
-          :>  Capture "run_id" Text
-          :>  "steps"
-          :>  Capture "step_id" Text
-          :>  QueryParam "include[]" Text
-          :>  Get '[JSON] RunStepObject
+        "threads"
+    :>  Header' '[Required, Strict] "OpenAI-Beta" Text
+    :>  (     Capture "thread_id" ThreadID
+              :>  "runs"
+              :>  Capture "run_id" RunID
+              :>  "steps"
+              :>  QueryParam "limit" Natural
+              :>  QueryParam "order" Order
+              :>  QueryParam "after" Text
+              :>  QueryParam "before" Text
+              :>  QueryParam "include[]" Text
+              :>  Get '[JSON] (ListOf RunStepObject)
+        :<|>      Capture "thread_id" ThreadID
+              :>  "runs"
+              :>  Capture "run_id" RunID
+              :>  "steps"
+              :>  Capture "step_id" StepID
+              :>  QueryParam "include[]" Text
+              :>  Get '[JSON] RunStepObject
+        )

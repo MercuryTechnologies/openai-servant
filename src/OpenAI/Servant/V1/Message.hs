@@ -12,10 +12,11 @@ module OpenAI.Servant.V1.Message
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.Tool
 
 -- | References an image File in the content of a message
-data ImageFile = ImageFile{ file_id :: Text, detail :: Maybe (AutoOr Text) }
+data ImageFile = ImageFile{ file_id :: FileID, detail :: Maybe (AutoOr Text) }
     deriving stock (Generic, Show)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -51,11 +52,11 @@ instance IsString text => IsString (Content text) where
     fromString string = Text{ text = fromString string }
 
 -- | A file attached to the message, and the tools it should be added to
-data Attachment = Attachment{ file_id :: Text, tools :: Maybe (Vector Tool) }
+data Attachment = Attachment{ file_id :: FileID, tools :: Maybe (Vector Tool) }
     deriving stock (Generic, Show)
     deriving anyclass (FromJSON, ToJSON)
 
--- | Request body for @\/v1\/threads\/:thread_id\/messages@
+-- | A message
 data Message
     = User
         { content :: Vector (Content Text)

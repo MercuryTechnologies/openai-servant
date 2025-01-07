@@ -11,13 +11,14 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Images.Image
 import OpenAI.Servant.V1.Images.ResponseFormat
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Models (Model(..))
 
 import qualified Data.Text as Text
 
 -- | Request body for @\/v1\/images\/variations@
 data CreateImageVariation = CreateImageVariation
     { image :: FilePath
-    , model :: Maybe Text
+    , model :: Maybe Model
     , n :: Maybe Natural
     , response_format :: Maybe ResponseFormat
     , size :: Maybe Text
@@ -38,7 +39,7 @@ instance ToMultipart Tmp CreateImageVariation where
     toMultipart CreateImageVariation{..} = MultipartData{..}
       where
         inputs =
-                foldMap (input "model") model
+                foldMap (input "model" . text) model
             <>  foldMap (input "n" . renderIntegral) n
             <>  foldMap (input "response_format" . toUrlPiece) response_format
             <>  foldMap (input "size") size

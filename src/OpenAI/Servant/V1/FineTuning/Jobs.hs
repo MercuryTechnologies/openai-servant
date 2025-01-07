@@ -1,11 +1,13 @@
 -- | @\/v1\/fine_tuning/jobs@
 module OpenAI.Servant.V1.FineTuning.Jobs
     ( -- * Main types
-      CreateFineTuningJob(..)
+      FineTuningJobID(..)
+    , CreateFineTuningJob(..)
     , _CreateFineTuningJob
     , JobObject(..)
     , EventObject(..)
     , CheckpointObject(..)
+
       -- * Other types
     , AutoOr(..)
     , Hyperparameters(..)
@@ -14,6 +16,7 @@ module OpenAI.Servant.V1.FineTuning.Jobs
     , Status(..)
     , Level(..)
     , Metrics(..)
+
       -- * Servant
     , API
     ) where
@@ -21,7 +24,13 @@ module OpenAI.Servant.V1.FineTuning.Jobs
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.AutoOr
 import OpenAI.Servant.V1.Error
+import OpenAI.Servant.V1.Files (FileID)
+import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.ListOf
+
+-- | Fine tuning job ID
+newtype FineTuningJobID = FineTuningJobID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | The hyperparameters used for the fine-tuning job
 data Hyperparameters = Hyperparameters
@@ -62,11 +71,11 @@ instance ToJSON Integration where
 
 -- | Request body for @\/v1\/fine_tuning\/jobs@
 data CreateFineTuningJob = CreateFineTuningJob
-    { model :: Text
-    , training_file :: Text
+    { model :: Model
+    , training_file :: FileID
     , hyperparameters :: Maybe Hyperparameters
     , suffix :: Maybe Text
-    , validation_file :: Maybe Text
+    , validation_file :: Maybe FileID
     , integrations :: Maybe (Vector Integration)
     , seed :: Maybe Integer
     } deriving stock (Generic, Show)
@@ -98,20 +107,20 @@ instance FromJSON Status where
 -- | The fine_tuning.job object represents a fine-tuning job that has been
 -- created through the API.
 data JobObject = JobObject
-    { id :: Text
+    { id :: FineTuningJobID
     , created_at :: POSIXTime
     , error :: Maybe Error
-    , fine_tuned_model :: Maybe Text
+    , fine_tuned_model :: Maybe Model
     , finished_at :: Maybe POSIXTime
     , hyperparameters :: Hyperparameters
-    , model :: Text
+    , model :: Model
     , object :: Text
     , organization_id :: Text
-    , result_files :: Vector Text
+    , result_files :: Vector FileID
     , status :: Status
     , trained_tokens :: Maybe Natural
-    , training_file :: Text
-    , validation_file :: Maybe Text
+    , training_file :: FileID
+    , validation_file :: Maybe FileID
     , integrations :: Maybe (Vector Integration)
     , seed :: Integer
     , estimated_finish :: Maybe POSIXTime
@@ -151,11 +160,11 @@ data Metrics = Metrics
 -- a fine-tuning job that is ready to use
 data CheckpointObject = CheckpointObject
     { id :: Text
-    , created_at :: Text
+    , created_at :: POSIXTime
     , fine_tuned_model_checkpoint :: Text
     , step_number :: Natural
     , metrics :: Metrics
-    , fine_tuning_job_id :: Text
+    , fine_tuning_job_id :: FineTuningJobID
     , object :: Text
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
@@ -169,19 +178,19 @@ type API =
         :<|>      QueryParam "after" Text
               :>  QueryParam "limit" Natural
               :>  Get '[JSON] (ListOf JobObject)
-        :<|>      Capture "fine_tuning_job_id" Text
+        :<|>      Capture "fine_tuning_job_id" FineTuningJobID
               :>  "events"
               :>  QueryParam "after" Text
               :>  QueryParam "limit" Natural
               :>  Get '[JSON] (ListOf EventObject)
-        :<|>      Capture "fine_tuning_job_id" Text
+        :<|>      Capture "fine_tuning_job_id" FineTuningJobID
               :>  "checkpoints"
               :>  QueryParam "after" Text
               :>  QueryParam "limit" Natural
               :>  Get '[JSON] (ListOf CheckpointObject)
-        :<|>      Capture "fine_tuning_job_id" Text
+        :<|>      Capture "fine_tuning_job_id" FineTuningJobID
               :>  Get '[JSON] JobObject
-        :<|>      Capture "fine_tuning_job_id" Text
+        :<|>      Capture "fine_tuning_job_id" FineTuningJobID
               :>  "cancel"
               :>  Post '[JSON] JobObject
         )

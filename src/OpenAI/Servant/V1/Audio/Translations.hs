@@ -11,19 +11,20 @@ module OpenAI.Servant.V1.Audio.Translations
     ) where
 
 import OpenAI.Servant.Prelude as OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Models (Model(..))
 
 import qualified Data.Text as Text
 
 -- | Request body for @\/v1\/audio\/translations@
 data CreateTranslation = CreateTranslation
     { file :: FilePath
-    , model :: Text
+    , model :: Model
     , prompt :: Maybe Text
     , temperature :: Maybe Double
     } deriving stock (Generic, Show)
 
 instance ToMultipart Tmp CreateTranslation where
-    toMultipart CreateTranslation{..} = MultipartData{..}
+    toMultipart CreateTranslation{ model = Model model, ..} = MultipartData{..}
       where
         inputs =
                 input "model" model

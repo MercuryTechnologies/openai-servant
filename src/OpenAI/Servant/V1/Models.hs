@@ -1,7 +1,8 @@
 -- | @\/v1\/models@
 module OpenAI.Servant.V1.Models
     ( -- * Main types
-      ModelObject(..)
+      Model(..)
+    , ModelObject(..)
 
       -- * Servant
     , API
@@ -11,9 +12,13 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.ListOf
 
+-- | Model
+newtype Model = Model{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
+
 -- | Describes an OpenAI model offering that can be used with the API
 data ModelObject = ModelObject
-    { id :: Text
+    { id :: Model
     , created :: POSIXTime
     , object :: Text
     , owned_by :: Text
@@ -24,8 +29,8 @@ data ModelObject = ModelObject
 type API =
         "models"
     :>  (         Get '[JSON] (ListOf ModelObject)
-        :<|>      Capture "model" Text
+        :<|>      Capture "model" Model
               :>  Get '[JSON] ModelObject
-        :<|>      Capture "model" Text
+        :<|>      Capture "model" Model
               :>  Delete '[JSON] DeletionStatus
         )

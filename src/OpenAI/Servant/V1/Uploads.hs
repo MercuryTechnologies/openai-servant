@@ -2,7 +2,8 @@
 {-# LANGUAGE InstanceSigs #-}
 module OpenAI.Servant.V1.Uploads
     ( -- * Main types
-      CreateUpload(..)
+      UploadID(..)
+    , CreateUpload(..)
     , _CreateUpload
     , AddUploadPart(..)
     , _AddUploadPart
@@ -20,6 +21,10 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Files (FileObject, Purpose)
 
 import qualified Data.Text as Text
+
+-- | Upload ID
+newtype UploadID = UploadID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | Request body for @\/v1\/uploads@
 data CreateUpload = CreateUpload
@@ -88,7 +93,7 @@ instance FromJSON Status where
 
 -- | The Upload object can accept byte chunks in the form of Parts.
 data UploadObject file = UploadObject
-    { id :: Text
+    { id :: UploadID
     , created_at :: POSIXTime
     , filename :: Text
     , bytes :: Natural
@@ -107,7 +112,7 @@ instance FromJSON (UploadObject FileObject)
 data PartObject = PartObject
     { id :: Text
     , created_at :: POSIXTime
-    , upload_id :: Text
+    , upload_id :: UploadID
     , object :: Text
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
@@ -117,15 +122,15 @@ type API
     = "uploads"
     :>  (         ReqBody '[JSON] CreateUpload
               :>  Post '[JSON] (UploadObject (Maybe Void))
-        :<|>      Capture "upload_id" Text
+        :<|>      Capture "upload_id" UploadID
               :>  "parts"
               :>  MultipartForm Tmp AddUploadPart
               :>  Post '[JSON] PartObject
-        :<|>      Capture "upload_id" Text
+        :<|>      Capture "upload_id" UploadID
               :>  "complete"
               :>  ReqBody '[JSON] CompleteUpload
               :>  Post '[JSON] (UploadObject FileObject)
-        :<|>      Capture "upload_id" Text
+        :<|>      Capture "upload_id" UploadID
               :>  "cancel"
               :>  Post '[JSON] (UploadObject (Maybe Void))
         )

@@ -1,7 +1,8 @@
 -- | @\/v1\/batches@
 module OpenAI.Servant.V1.Batches
     ( -- * Main types
-      CreateBatch(..)
+      BatchID(..)
+    , CreateBatch(..)
     , _CreateBatch
     , BatchObject(..)
       -- * Other types
@@ -13,11 +14,16 @@ module OpenAI.Servant.V1.Batches
 
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Error
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.ListOf
+
+-- | Batch ID
+newtype BatchID = BatchID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | Request body for @\/v1\/batches@
 data CreateBatch = CreateBatch
-    { input_file_id :: Text
+    { input_file_id :: FileID
     , endpoint :: Text
     , completion_window :: Text
     , metadata :: Maybe (Map Text Text)
@@ -55,15 +61,15 @@ data Counts = Counts
 
 -- | The batch object
 data BatchObject = BatchObject
-    { id :: Text
+    { id :: BatchID
     , object :: Text
     , endpoint :: Text
     , errors :: Maybe (ListOf Error)
-    , input_file_id :: Text
+    , input_file_id :: FileID
     , completion_window :: Text
     , status :: Status
-    , output_file_id :: Maybe Text
-    , error_file_id :: Maybe Text
+    , output_file_id :: Maybe FileID
+    , error_file_id :: Maybe FileID
     , created_at :: POSIXTime
     , in_progress_at :: Maybe POSIXTime
     , expires_at :: Maybe POSIXTime
@@ -85,9 +91,9 @@ type API =
         "batches"
     :>  (         ReqBody '[JSON] CreateBatch
               :>  Post '[JSON] BatchObject
-        :<|>      Capture "batch_id" Text
+        :<|>      Capture "batch_id" BatchID
               :>  Get '[JSON] BatchObject
-        :<|>      Capture "batch_id" Text
+        :<|>      Capture "batch_id" BatchID
               :>  "cancel"
               :>  Post '[JSON] BatchObject
         :<|>      QueryParam "after" Text

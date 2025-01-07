@@ -1,7 +1,8 @@
 -- | @\/v1\/threads\/:thread_id\/runs@
 module OpenAI.Servant.V1.Threads.Runs
     ( -- * Main types
-      CreateRun(..)
+      RunID(..)
+    , CreateRun(..)
     , _CreateRun
     , CreateThreadAndRun(..)
     , _CreateThreadAndRun
@@ -17,25 +18,31 @@ module OpenAI.Servant.V1.Threads.Runs
     , RequiredAction(..)
     , IncompleteDetails(..)
     , ToolOutput(..)
+    , Status(..)
 
       -- * Servant
     , API
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Assistants (AssistantID)
 import OpenAI.Servant.V1.AutoOr
 import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Message
+import OpenAI.Servant.V1.Models (Model)
 import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.ResponseFormat
 import OpenAI.Servant.V1.Threads (Thread)
 import OpenAI.Servant.V1.Tool
 import OpenAI.Servant.V1.ToolCall
 import OpenAI.Servant.V1.ToolResources
+import OpenAI.Servant.V1.Threads (ThreadID)
 import OpenAI.Servant.V1.Usage
 
-import qualified OpenAI.Servant.V1.Threads.Runs.Steps as Steps
+-- | Run ID
+newtype RunID = RunID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | Controls for how a thread will be truncated prior to the run
 data TruncationStrategy
@@ -59,8 +66,8 @@ instance ToJSON TruncationStrategy where
 
 -- | Request body for @\/v1\/threads\/:thread_id\/runs@
 data CreateRun = CreateRun
-    { assistant_id :: Text
-    , model :: Maybe Text
+    { assistant_id :: AssistantID
+    , model :: Maybe Model
     , instructions :: Maybe Text
     , additional_instructions :: Maybe Text
     , additional_messages :: Maybe (Vector Message)
@@ -100,9 +107,9 @@ _CreateRun = CreateRun
 
 -- | Request body for @\/v1\/threads\/runs@
 data CreateThreadAndRun = CreateThreadAndRun
-    { assistant_id :: Text
+    { assistant_id :: AssistantID
     , thread :: Maybe Thread
-    , model :: Maybe Text
+    , model :: Maybe Model
     , instructions :: Maybe Text
     , tools :: Maybe (Vector Tool)
     , toolResources :: Maybe ToolResources
@@ -145,6 +152,22 @@ data SubmitToolOutputs = SubmitToolOutputs
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
 
+-- | The status of the run
+data Status
+    = Queued
+    | In_Progress
+    | Requires_Action
+    | Cancelling
+    | Cancelled
+    | Failed
+    | Completed
+    | Incomplete
+    | Expired
+    deriving stock (Generic, Show)
+
+instance FromJSON Status where
+    parseJSON = genericParseJSON aesonOptions
+
 -- | Details on the action required to continue the run
 data RequiredAction = RequiredAction_Submit_Tool_Outputs
     { submit_tool_outputs :: SubmitToolOutputs
@@ -168,12 +191,12 @@ data IncompleteDetails = IncompleteDetails
 
 -- | Represents an execution run on a thread.
 data RunObject = RunObject
-    { id :: Text
+    { id :: RunID
     , object :: Text
     , created_at :: POSIXTime
-    , thread_id :: Text
-    , assistant_id :: Text
-    , status :: Text
+    , thread_id :: ThreadID
+    , assistant_id :: AssistantID
+    , status :: Status
     , required_action :: Maybe RequiredAction
     , last_error :: Maybe Error
     , expires_at :: Maybe POSIXTime
@@ -182,7 +205,7 @@ data RunObject = RunObject
     , failed_at :: Maybe POSIXTime
     , completed_at :: Maybe POSIXTime
     , incomplete_details :: Maybe IncompleteDetails
-    , model :: Text
+    , model :: Model
     , instructions :: Maybe Text
     , tools :: Vector Tool
     , metadata :: Map Text Text
@@ -233,7 +256,7 @@ _SubmitToolOutputsToRun = SubmitToolOutputsToRun{ }
 type API =
         "threads"
     :>  Header' '[Required, Strict] "OpenAI-Beta" Text
-    :>  (         Capture "thread_id" Text
+    :>  (         Capture "thread_id" ThreadID
               :>  "runs"
               :>  QueryParam "include[]" Text
               :>  ReqBody '[JSON] CreateRun
@@ -241,32 +264,31 @@ type API =
         :<|>      "runs"
               :>  ReqBody '[JSON] CreateThreadAndRun
               :>  Post '[JSON] RunObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "runs"
               :>  QueryParam "limit" Natural
               :>  QueryParam "order" Order
               :>  QueryParam "after" Text
               :>  QueryParam "before" Text
               :>  Get '[JSON] (ListOf RunObject)
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "runs"
-              :>  Capture "run_id" Text
+              :>  Capture "run_id" RunID
               :>  Get '[JSON] RunObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "runs"
-              :>  Capture "run_id" Text
+              :>  Capture "run_id" RunID
               :>  ReqBody '[JSON] ModifyRun
               :>  Post '[JSON] RunObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "runs"
-              :>  Capture "run_id" Text
+              :>  Capture "run_id" RunID
               :>  "submit_tool_outputs"
               :>  ReqBody '[JSON] SubmitToolOutputsToRun
               :>  Post '[JSON] RunObject
-        :<|>      Capture "thread_id" Text
+        :<|>      Capture "thread_id" ThreadID
               :>  "runs"
-              :>  Capture "run_id" Text
+              :>  Capture "run_id" RunID
               :>  "cancel"
               :>  Post '[JSON] RunObject
-        :<|>      Steps.API
         )

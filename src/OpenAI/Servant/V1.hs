@@ -14,26 +14,25 @@ import Data.Proxy (Proxy(..))
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Audio.Speech (CreateSpeech)
 import OpenAI.Servant.V1.Embeddings (CreateEmbeddings, EmbeddingObject)
-import OpenAI.Servant.V1.Batches (CreateBatch, BatchObject)
+import OpenAI.Servant.V1.Batches (BatchID, BatchObject, CreateBatch)
 import OpenAI.Servant.V1.DeletionStatus (DeletionStatus)
-import OpenAI.Servant.V1.Files (FileObject, UploadFile)
+import OpenAI.Servant.V1.Files (FileID, FileObject, UploadFile)
 import OpenAI.Servant.V1.Images.Image (ImageObject)
 import OpenAI.Servant.V1.Images.Generations (CreateImage)
 import OpenAI.Servant.V1.Images.Edits (CreateImageEdit)
 import OpenAI.Servant.V1.Images.Variations (CreateImageVariation)
 import OpenAI.Servant.V1.ListOf (ListOf(..))
 import OpenAI.Servant.V1.Message (Message)
-import OpenAI.Servant.V1.Models (ModelObject)
+import OpenAI.Servant.V1.Models (Model, ModelObject)
 import OpenAI.Servant.V1.Moderations (CreateModeration, Moderation)
 import OpenAI.Servant.V1.Order (Order)
-import OpenAI.Servant.V1.Threads (Thread, ModifyThread, ThreadObject)
-import OpenAI.Servant.V1.Threads.Messages (ModifyMessage, MessageObject)
-import OpenAI.Servant.V1.Threads.Runs.Steps (RunStepObject(..))
+import OpenAI.Servant.V1.Threads (Thread, ThreadID, ModifyThread, ThreadObject)
+import OpenAI.Servant.V1.Threads.Runs.Steps (RunStepObject(..), StepID)
 import Servant.Client (ClientEnv)
 import Servant.Multipart.Client ()
 
 import OpenAI.Servant.V1.Assistants
-    (AssistantObject, CreateAssistant, ModifyAssistant)
+    (AssistantID, AssistantObject, CreateAssistant, ModifyAssistant)
 import OpenAI.Servant.V1.Audio.Transcriptions
     (CreateTranscription, TranscriptionObject)
 import OpenAI.Servant.V1.Audio.Translations
@@ -41,22 +40,46 @@ import OpenAI.Servant.V1.Audio.Translations
 import OpenAI.Servant.V1.Chat.Completions
     (ChatCompletionObject, CreateChatCompletion)
 import OpenAI.Servant.V1.FineTuning.Jobs
-    (CheckpointObject, CreateFineTuningJob, EventObject, JobObject)
+    ( CheckpointObject
+    , CreateFineTuningJob
+    , EventObject
+    , FineTuningJobID
+    , JobObject
+    )
+import OpenAI.Servant.V1.Threads.Messages
+    (MessageID, MessageObject, ModifyMessage)
 import OpenAI.Servant.V1.Threads.Runs
     ( CreateRun
     , CreateThreadAndRun
     , ModifyRun
+    , RunID
     , RunObject
     , SubmitToolOutputsToRun
     )
 import OpenAI.Servant.V1.Uploads
-    (AddUploadPart, CompleteUpload, CreateUpload, PartObject, UploadObject)
+    ( AddUploadPart
+    , CompleteUpload
+    , CreateUpload
+    , PartObject
+    , UploadID
+    , UploadObject
+    )
 import OpenAI.Servant.V1.VectorStores
-    (CreateVectorStore(..), ModifyVectorStore(..), VectorStoreObject(..))
+    ( CreateVectorStore(..)
+    , ModifyVectorStore(..)
+    , VectorStoreID
+    , VectorStoreObject(..)
+    )
 import OpenAI.Servant.V1.VectorStores.Files
-    (CreateVectorStoreFile(..), VectorStoreFileObject(..))
+    ( CreateVectorStoreFile(..)
+    , VectorStoreFileID
+    , VectorStoreFileObject(..)
+    )
 import OpenAI.Servant.V1.VectorStores.FileBatches
-    (CreateVectorStoreFileBatch(..), VectorStoreFilesBatchObject(..))
+    ( CreateVectorStoreFileBatch(..)
+    , VectorStoreFilesBatchObject(..)
+    , VectorStoreFileBatchID
+    )
 
 import qualified Control.Exception as Exception
 import qualified Data.Text as Text
@@ -72,6 +95,7 @@ import qualified OpenAI.Servant.V1.Images as Images
 import qualified OpenAI.Servant.V1.Models as Models
 import qualified OpenAI.Servant.V1.Moderations as Moderations
 import qualified OpenAI.Servant.V1.Threads.Runs as Threads.Runs
+import qualified OpenAI.Servant.V1.Threads.Runs.Steps as Threads.Runs.Steps
 import qualified OpenAI.Servant.V1.Threads as Threads
 import qualified OpenAI.Servant.V1.Threads.Messages as Messages
 import qualified OpenAI.Servant.V1.Uploads as Uploads
@@ -172,7 +196,10 @@ makeMethods clientEnv token = Methods{..}
                 :<|>  modifyRun
                 :<|>  submitToolOutputsToRun
                 :<|>  cancelRun
-                :<|>  listRunSteps_
+                )
+            )
+      :<|>  (   (\x -> x "assistants=v2")
+            ->  (     listRunSteps_
                 :<|>  retrieveRunStep
                 )
             )
@@ -259,38 +286,26 @@ data Methods = Methods
         -- ^ limit
         -> IO (Vector JobObject)
     , listFineTuningEvents
-        :: Text
-        -- ^ Job ID
+        :: FineTuningJobID
+        -- ^
         -> Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
         -> IO (Vector EventObject)
     , listFineTuningCheckpoints
-        :: Text
-        -- ^ Job ID
+        :: FineTuningJobID
+        -- ^
         -> Maybe Text
         -- ^ after
         -> Maybe Natural
         -- ^ limit
         -> IO (Vector CheckpointObject)
-    , retrieveFineTuningJob
-        :: Text
-        -- ^ Job ID
-        -> IO JobObject
-    , cancelFineTuning
-        :: Text
-        -- ^ Job ID
-        -> IO JobObject
+    , retrieveFineTuningJob :: FineTuningJobID -> IO JobObject
+    , cancelFineTuning :: FineTuningJobID -> IO JobObject
     , createBatch :: CreateBatch -> IO BatchObject
-    , retrieveBatch
-        :: Text
-        -- ^ Batch ID
-        -> IO BatchObject
-    , cancelBatch
-        :: Text
-        -- ^ Batch ID
-        -> IO BatchObject
+    , retrieveBatch :: BatchID -> IO BatchObject
+    , cancelBatch :: BatchID -> IO BatchObject
     , listBatch
         :: Maybe Text
         -- ^ after
@@ -308,48 +323,21 @@ data Methods = Methods
         -> Maybe Text
         -- ^ after
         -> IO (Vector FileObject)
-    , retrieveFile
-        :: Text
-        -- ^ File ID
-        -> IO FileObject
-    , deleteFile
-        :: Text
-        -- ^ File ID
-        -> IO DeletionStatus
-    , retrieveFileContent
-        :: Text
-        -- ^ File ID
-        -> IO ByteString
+    , retrieveFile :: FileID -> IO FileObject
+    , deleteFile :: FileID -> IO DeletionStatus
+    , retrieveFileContent :: FileID -> IO ByteString
     , createUpload
         :: CreateUpload -> IO (UploadObject (Maybe Void))
-    , addUploadPart
-        :: Text
-        -- ^ Upload ID
-        -> AddUploadPart
-        -- ^
-        -> IO PartObject
+    , addUploadPart :: UploadID -> AddUploadPart -> IO PartObject
     , completeUpload
-        :: Text
-        -- ^ Upload ID
-        -> CompleteUpload
-        -- ^
-        -> IO (UploadObject FileObject)
-    , cancelUpload
-        :: Text
-        -- ^ Upload ID
-        -> IO (UploadObject (Maybe Void))
+        :: UploadID -> CompleteUpload -> IO (UploadObject FileObject)
+    , cancelUpload :: UploadID -> IO (UploadObject (Maybe Void))
     , createImage :: CreateImage -> IO (Vector ImageObject)
     , createImageEdit :: CreateImageEdit -> IO (Vector ImageObject)
     , createImageVariation :: CreateImageVariation -> IO (Vector ImageObject)
     , listModels :: IO (Vector ModelObject)
-    , retrieveModel
-        :: Text
-        -- ^ Model ID
-        -> IO ModelObject
-    , deleteModel
-        :: Text
-        -- ^ Model ID
-        -> IO DeletionStatus
+    , retrieveModel :: Model -> IO ModelObject
+    , deleteModel :: Model -> IO DeletionStatus
     , createModeration :: CreateModeration -> IO Moderation
     , createAssistant :: CreateAssistant -> IO AssistantObject
     , listAssistants
@@ -362,66 +350,22 @@ data Methods = Methods
         -> Maybe Text
         -- ^ before
         -> IO (Vector AssistantObject)
-    , retrieveAssistant
-        :: Text
-        -- ^ Assistant ID
-        -> IO AssistantObject
-    , modifyAssistant
-        :: Text
-        -- ^ Assistant ID
-        -> ModifyAssistant
-        -> IO AssistantObject
-    , deleteAssistant
-        :: Text
-        -- ^ Assistant ID
-        -> IO DeletionStatus
+    , retrieveAssistant :: AssistantID -> IO AssistantObject
+    , modifyAssistant :: AssistantID -> ModifyAssistant -> IO AssistantObject
+    , deleteAssistant :: AssistantID -> IO DeletionStatus
     , createThread :: Thread -> IO ThreadObject
-    , retrieveThread
-        :: Text
-        -- ^ Thread ID
-        -> IO ThreadObject
-    , modifyThread
-        :: Text
-        -- ^ Thread ID
-        -> ModifyThread
-        -- ^
-        -> IO ThreadObject
-    , deleteThread
-        :: Text
-        -- ^ Thread ID
-        -> IO DeletionStatus
-    , createMessage
-        :: Text
-        -- ^ Thread ID
-        -> Message
-        -> IO MessageObject
-    , listMessages
-        :: Text
-        -- ^ Thread ID
-        -> IO (Vector MessageObject)
-    , retrieveMessage
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Message ID
-        -> IO MessageObject
+    , retrieveThread :: ThreadID -> IO ThreadObject
+    , modifyThread :: ThreadID -> ModifyThread -> IO ThreadObject
+    , deleteThread :: ThreadID -> IO DeletionStatus
+    , createMessage :: ThreadID -> Message -> IO MessageObject
+    , listMessages :: ThreadID -> IO (Vector MessageObject)
+    , retrieveMessage :: ThreadID -> MessageID -> IO MessageObject
     , modifyMessage
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Message ID
-        -> ModifyMessage
-        -- ^
-        -> IO MessageObject
-    , deleteMessage
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Message ID
-        -> IO DeletionStatus
+        :: ThreadID -> MessageID -> ModifyMessage -> IO MessageObject
+    , deleteMessage :: ThreadID -> MessageID -> IO DeletionStatus
     , createRun
-        :: Text
-        -- ^ Thread ID
+        :: ThreadID
+        -- ^
         -> Maybe Text
         -- ^ include[]
         -> CreateRun
@@ -429,8 +373,8 @@ data Methods = Methods
         -> IO RunObject
     , createThreadAndRun :: CreateThreadAndRun -> IO RunObject
     , listRuns
-        :: Text
-        -- ^ Thread ID
+        :: ThreadID
+        -- ^
         -> Maybe Natural
         -- ^ limit
         -> Maybe Order
@@ -440,39 +384,16 @@ data Methods = Methods
         -> Maybe Text
         -- ^ before
         -> IO (Vector RunObject)
-    , retrieveRun
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ RunID
-        -> IO RunObject
-    , modifyRun
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Run ID
-        -> ModifyRun
-        -- ^
-        -> IO RunObject
+    , retrieveRun :: ThreadID -> RunID -> IO RunObject
+    , modifyRun :: ThreadID -> RunID -> ModifyRun -> IO RunObject
     , submitToolOutputsToRun
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Run ID
-        -> SubmitToolOutputsToRun
-        -- ^
-        -> IO RunObject
-    , cancelRun
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Run ID
-        -> IO RunObject
+        :: ThreadID -> RunID -> SubmitToolOutputsToRun -> IO RunObject
+    , cancelRun :: ThreadID -> RunID -> IO RunObject
     , listRunSteps
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Run ID
+        :: ThreadID
+        -- ^
+        -> RunID
+        -- ^
         -> Maybe Natural
         -- ^ limit
         -> Maybe Order
@@ -485,12 +406,12 @@ data Methods = Methods
         -- ^ include[]
         -> IO (Vector RunStepObject)
     , retrieveRunStep
-        :: Text
-        -- ^ Thread ID
-        -> Text
-        -- ^ Run ID
-        -> Text
-        -- ^ Step ID
+        :: ThreadID
+        -- ^
+        -> RunID
+        -- ^
+        -> StepID
+        -- ^
         -> Maybe Text
         -- ^ include[]
         -> IO RunStepObject
@@ -505,29 +426,15 @@ data Methods = Methods
         -> Maybe Text
         -- ^ before
         -> IO (Vector VectorStoreObject)
-    , retrieveVectorStore
-        :: Text
-        -- ^ Vector store ID
-        -> IO VectorStoreObject
+    , retrieveVectorStore :: VectorStoreID -> IO VectorStoreObject
     , modifyVectorStore
-        :: Text
-        -- ^ Vector store ID
-        -> ModifyVectorStore
-        -- ^
-        -> IO VectorStoreObject
-    , deleteVectorStore
-        :: Text
-        -- ^ Vector store ID
-        -> IO DeletionStatus
+        :: VectorStoreID -> ModifyVectorStore -> IO VectorStoreObject
+    , deleteVectorStore :: VectorStoreID -> IO DeletionStatus
     , createVectorStoreFile
-        :: Text
-        -- ^ Vector store ID
-        -> CreateVectorStoreFile
-        -- ^
-        -> IO VectorStoreFileObject
+        :: VectorStoreID -> CreateVectorStoreFile -> IO VectorStoreFileObject
     , listVectorStoreFiles
-        :: Text
-        -- ^ Vector store ID
+        :: VectorStoreID
+        -- ^
         -> Maybe Natural
         -- ^ limit
         -> Maybe Order
@@ -540,40 +447,26 @@ data Methods = Methods
         -- ^ filter
         -> IO (Vector VectorStoreFileObject)
     , retrieveVectorStoreFile
-        :: Text
-        -- ^ Vector store ID
-        -> Text
-        -- ^ Vector store file ID
-        -> IO VectorStoreFileObject
+        :: VectorStoreID -> VectorStoreFileID -> IO VectorStoreFileObject
     , deleteVectorStoreFile
-        :: Text
-        -- ^ Vector store ID
-        -> Text
-        -- ^ Vector store file ID
-        -> IO DeletionStatus
+        :: VectorStoreID -> VectorStoreFileID -> IO DeletionStatus
     , createVectorStoreFileBatch
-        :: Text
-        -- ^ Vector store ID
+        :: VectorStoreID
         -> CreateVectorStoreFileBatch
-        -- ^
         -> IO VectorStoreFilesBatchObject
     , retrieveVectorStoreFileBatch
-        :: Text
-        -- ^ Vector store ID
-        -> Text
-        -- ^ Batch ID
+        :: VectorStoreID
+        -> VectorStoreFileBatchID
         -> IO VectorStoreFilesBatchObject
     , cancelVectorStoreFileBatch
-        :: Text
-        -- ^ Vector store ID
-        -> Text
-        -- ^ Batch ID
+        :: VectorStoreID
+        -> VectorStoreFileBatchID
         -> IO VectorStoreFilesBatchObject
     , listVectorStoreFilesInABatch
-        :: Text
-        -- ^ Vector store ID
-        -> Text
-        -- ^ Batch ID
+        :: VectorStoreID
+        -- ^
+        -> VectorStoreFileBatchID
+        -- ^
         -> Maybe Natural
         -- ^ limit
         -> Maybe Order
@@ -605,6 +498,7 @@ type API
         :<|>  Threads.API
         :<|>  Messages.API
         :<|>  Threads.Runs.API
+        :<|>  Threads.Runs.Steps.API
         :<|>  VectorStores.API
         :<|>  VectorStores.Files.API
         :<|>  VectorStores.FileBatches.API

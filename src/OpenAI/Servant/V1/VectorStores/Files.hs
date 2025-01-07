@@ -1,7 +1,8 @@
 -- | @\/v1\/vector_stores\/:vector_store_id\/files@
 module OpenAI.Servant.V1.VectorStores.Files
     ( -- * Main types
-      CreateVectorStoreFile(..)
+      VectorStoreFileID(..)
+    , CreateVectorStoreFile(..)
     , _CreateVectorStoreFile
     , VectorStoreFileObject(..)
 
@@ -12,15 +13,21 @@ module OpenAI.Servant.V1.VectorStores.Files
 import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.ChunkingStrategy
 import OpenAI.Servant.V1.DeletionStatus
+import OpenAI.Servant.V1.Files (FileID)
 import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Order
+import OpenAI.Servant.V1.VectorStores (VectorStoreID)
 import OpenAI.Servant.V1.VectorStores.Status
+
+-- | Vector store file ID
+newtype VectorStoreFileID = VectorStoreFileID{ text :: Text }
+    deriving newtype (FromJSON, IsString, Show, ToHttpApiData, ToJSON)
 
 -- | Request body for @\/v1\/vector_stores\/:vector_store_id\/files@
 data CreateVectorStoreFile = CreateVectorStoreFile
-    { file_id :: Text
-    , chunking_strategy :: Maybe Text
+    { file_id :: FileID
+    , chunking_strategy :: Maybe ChunkingStrategy
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
 
@@ -32,11 +39,11 @@ _CreateVectorStoreFile = CreateVectorStoreFile
 
 -- | A list of files attached to a vector store
 data VectorStoreFileObject = VectorStoreFileObject
-    { id :: Text
+    { id :: VectorStoreFileID
     , object :: Text
     , usage_bytes :: Natural
     , created_at :: POSIXTime
-    , vector_store_id :: Text
+    , vector_store_id :: VectorStoreID
     , status :: Status
     , last_error :: Maybe Error
     , chunking_strategy :: ChunkingStrategy
@@ -47,11 +54,11 @@ data VectorStoreFileObject = VectorStoreFileObject
 type API =
         "vector_stores"
     :>  Header' '[Required, Strict] "OpenAI-Beta" Text
-    :>  (         Capture "vector_store_id" Text
+    :>  (         Capture "vector_store_id" VectorStoreID
               :>  "files"
               :>  ReqBody '[JSON] CreateVectorStoreFile
               :>  Post '[JSON] VectorStoreFileObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  "files"
               :>  QueryParam "limit" Natural
               :>  QueryParam "order" Order
@@ -59,12 +66,12 @@ type API =
               :>  QueryParam "before" Text
               :>  QueryParam "filter" Status
               :>  Get '[JSON] (ListOf VectorStoreFileObject)
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  "files"
-              :>  Capture "file_id" Text
+              :>  Capture "file_id" VectorStoreFileID
               :>  Get '[JSON] VectorStoreFileObject
-        :<|>      Capture "vector_store_id" Text
+        :<|>      Capture "vector_store_id" VectorStoreID
               :>  "files"
-              :>  Capture "file_id" Text
+              :>  Capture "file_id" VectorStoreFileID
               :>  Delete '[JSON] DeletionStatus
         )

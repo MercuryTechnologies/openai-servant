@@ -14,6 +14,7 @@ import OpenAI.Servant.Prelude
 import OpenAI.Servant.V1.Images.Image
 import OpenAI.Servant.V1.Images.ResponseFormat
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.Models (Model)
 
 -- | The quality of the image that will be generated
 data Quality = Standard | HD
@@ -32,7 +33,7 @@ instance ToJSON Style where
 -- | Requesty body for @\/v1/images/generations@
 data CreateImage = CreateImage
     { prompt :: Text
-    , model :: Maybe Text
+    , model :: Maybe Model
     , n :: Maybe Natural
     , quality :: Maybe Quality
     , response_format :: Maybe ResponseFormat

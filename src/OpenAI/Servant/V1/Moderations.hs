@@ -14,11 +14,12 @@ module OpenAI.Servant.V1.Moderations
     ) where
 
 import OpenAI.Servant.Prelude
+import OpenAI.Servant.V1.Models (Model)
 
 -- | Request body for @\/v1\/moderations@
 data CreateModeration = CreateModeration
     { input :: Text
-    , model :: Maybe Text
+    , model :: Maybe Model
     } deriving stock (Generic, Show)
       deriving anyclass (ToJSON)
 
@@ -49,7 +50,7 @@ data Result = Result
 -- | Represents if a given text input is potentially harmful.
 data Moderation = Moderation
     { id :: Text
-    , model :: Text
+    , model :: Model
     , results :: Vector Result
     } deriving stock (Generic, Show)
       deriving anyclass (FromJSON)
