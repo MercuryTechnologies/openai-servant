@@ -10,63 +10,63 @@
 
 module Main where
 
-import OpenAI.Servant.V1 (Methods(..))
-import OpenAI.Servant.V1.AutoOr (AutoOr(..))
-import OpenAI.Servant.V1.Audio.Transcriptions (CreateTranscription(..))
-import OpenAI.Servant.V1.Audio.Translations (CreateTranslation(..))
-import OpenAI.Servant.V1.Batches (BatchObject(..), CreateBatch(..))
-import OpenAI.Servant.V1.Embeddings (CreateEmbeddings(..), EncodingFormat(..))
-import OpenAI.Servant.V1.Files (FileObject(..), Order(..), UploadFile(..))
-import OpenAI.Servant.V1.Images.Edits (CreateImageEdit(..))
-import OpenAI.Servant.V1.Images.Variations (CreateImageVariation(..))
-import OpenAI.Servant.V1.Message (Message(..))
-import OpenAI.Servant.V1.Moderations (CreateModeration(..))
-import OpenAI.Servant.V1.Threads.Messages (MessageObject(..), ModifyMessage(..))
-import OpenAI.Servant.V1.Tool (Tool(..), ToolChoice(..))
-import OpenAI.Servant.V1.ToolCall (ToolCall(..))
+import OpenAI.V1 (Methods(..))
+import OpenAI.V1.AutoOr (AutoOr(..))
+import OpenAI.V1.Audio.Transcriptions (CreateTranscription(..))
+import OpenAI.V1.Audio.Translations (CreateTranslation(..))
+import OpenAI.V1.Batches (BatchObject(..), CreateBatch(..))
+import OpenAI.V1.Embeddings (CreateEmbeddings(..), EncodingFormat(..))
+import OpenAI.V1.Files (FileObject(..), Order(..), UploadFile(..))
+import OpenAI.V1.Images.Edits (CreateImageEdit(..))
+import OpenAI.V1.Images.Variations (CreateImageVariation(..))
+import OpenAI.V1.Message (Message(..))
+import OpenAI.V1.Moderations (CreateModeration(..))
+import OpenAI.V1.Threads.Messages (MessageObject(..), ModifyMessage(..))
+import OpenAI.V1.Tool (Tool(..), ToolChoice(..))
+import OpenAI.V1.ToolCall (ToolCall(..))
 import Prelude hiding (id)
 
-import OpenAI.Servant.V1.Assistants
+import OpenAI.V1.Assistants
     (CreateAssistant(..), ModifyAssistant(..), AssistantObject(..))
-import OpenAI.Servant.V1.Audio.Speech
+import OpenAI.V1.Audio.Speech
     (_CreateSpeech, CreateSpeech(..), Voice(..))
-import OpenAI.Servant.V1.Chat.Completions
+import OpenAI.V1.Chat.Completions
     (CreateChatCompletion(..), Modality(..))
-import OpenAI.Servant.V1.FineTuning.Jobs
+import OpenAI.V1.FineTuning.Jobs
     (CreateFineTuningJob(..), Hyperparameters(..), JobObject(..))
-import OpenAI.Servant.V1.Images.Generations
+import OpenAI.V1.Images.Generations
     (CreateImage(..), Quality(..), Style(..))
-import OpenAI.Servant.V1.Threads
+import OpenAI.V1.Threads
     (ModifyThread(..), Thread(..), ThreadObject(..))
-import OpenAI.Servant.V1.Threads.Runs
+import OpenAI.V1.Threads.Runs
     (CreateRun(..), ModifyRun(..), RunObject(..))
-import OpenAI.Servant.V1.Uploads
+import OpenAI.V1.Uploads
     ( AddUploadPart(..)
     , CompleteUpload(..)
     , CreateUpload(..)
     , PartObject(..)
     , UploadObject(..)
     )
-import OpenAI.Servant.V1.VectorStores
+import OpenAI.V1.VectorStores
     ( CreateVectorStore(..)
     , ModifyVectorStore(..)
     , VectorStoreObject(..)
     )
-import OpenAI.Servant.V1.VectorStores.Files
+import OpenAI.V1.VectorStores.Files
     (CreateVectorStoreFile(..), VectorStoreFileObject(..))
-import OpenAI.Servant.V1.VectorStores.FileBatches
+import OpenAI.V1.VectorStores.FileBatches
     (CreateVectorStoreFileBatch(..), VectorStoreFilesBatchObject(..))
 
 import qualified Data.Text as Text
 import qualified Network.HTTP.Client as HTTP.Client
 import qualified Network.HTTP.Client.TLS as TLS
-import qualified OpenAI.Servant.V1 as V1
-import qualified OpenAI.Servant.V1.Chat.Completions as Completions
-import qualified OpenAI.Servant.V1.Files as Files
-import qualified OpenAI.Servant.V1.FineTuning.Jobs as Jobs
-import qualified OpenAI.Servant.V1.Images.ResponseFormat as ResponseFormat
-import qualified OpenAI.Servant.V1.Tool as Tool
-import qualified OpenAI.Servant.V1.ToolCall as ToolCall
+import qualified OpenAI.V1 as V1
+import qualified OpenAI.V1.Chat.Completions as Completions
+import qualified OpenAI.V1.Files as Files
+import qualified OpenAI.V1.FineTuning.Jobs as Jobs
+import qualified OpenAI.V1.Images.ResponseFormat as ResponseFormat
+import qualified OpenAI.V1.Tool as Tool
+import qualified OpenAI.V1.ToolCall as ToolCall
 import qualified Servant.Client as Client
 import qualified System.Environment as Environment
 import qualified Test.Tasty as Tasty
