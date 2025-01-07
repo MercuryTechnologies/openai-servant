@@ -1,4 +1,4 @@
-# `openai-servant`
+# `openai`
 
 This provides a binding to OpenAI's API using `servant`
 
@@ -13,8 +13,8 @@ Example usage:
 module Main where
 
 import Data.Foldable (traverse_)
-import OpenAI.Servant.V1
-import OpenAI.Servant.V1.Chat.Completions
+import OpenAI.V1
+import OpenAI.V1.Chat.Completions
 
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text.IO
