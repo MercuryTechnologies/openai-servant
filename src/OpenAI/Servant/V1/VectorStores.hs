@@ -9,7 +9,6 @@ module OpenAI.Servant.V1.VectorStores
 
       -- * Other types
     , ExpiresAfter(..)
-    , FileCounts(..)
 
       -- * Servant
     , API
@@ -21,6 +20,7 @@ import OpenAI.Servant.V1.ChunkingStrategy
 import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.Order
 import OpenAI.Servant.V1.ListOf
+import OpenAI.Servant.V1.VectorStores.FileCounts
 
 -- | The expiration policy for a vector store.
 data ExpiresAfter = ExpiresAfter
@@ -63,16 +63,6 @@ _ModifyVectorStore = ModifyVectorStore
     , expires_after = Nothing
     , metadata = Nothing
     }
-
--- | File counts
-data FileCounts = FileCounts
-    { in_progress :: Natural
-    , completed :: Natural
-    , failed :: Natural
-    , cancelled :: Natural
-    , total :: Natural
-    } deriving stock (Generic, Show)
-      deriving anyclass (FromJSON)
 
 -- | A vector store is a collection of processed files can be used by the
 -- @file_search@ tool.

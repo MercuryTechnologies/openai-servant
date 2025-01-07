@@ -5,9 +5,6 @@ module OpenAI.Servant.V1.VectorStores.Files
     , _CreateVectorStoreFile
     , VectorStoreFileObject(..)
 
-      -- * Other types
-    , Status(..)
-
       -- * Servant
     , API
     ) where
@@ -18,6 +15,7 @@ import OpenAI.Servant.V1.DeletionStatus
 import OpenAI.Servant.V1.Error
 import OpenAI.Servant.V1.ListOf
 import OpenAI.Servant.V1.Order
+import OpenAI.Servant.V1.VectorStores.Status
 
 -- | Request body for @\/v1\/vector_stores\/:vector_store_id\/files@
 data CreateVectorStoreFile = CreateVectorStoreFile
@@ -31,19 +29,6 @@ _CreateVectorStoreFile :: CreateVectorStoreFile
 _CreateVectorStoreFile = CreateVectorStoreFile
     { chunking_strategy = Nothing
     }
-
--- | The status of the vector store file
-data Status = In_Progress | Completed | Cancelled | Failed
-    deriving stock (Generic, Show)
-
-instance FromJSON Status where
-    parseJSON = genericParseJSON aesonOptions
-
-instance ToHttpApiData Status where
-    toUrlPiece In_Progress = "in_progress"
-    toUrlPiece Completed = "completed"
-    toUrlPiece Cancelled = "cancelled"
-    toUrlPiece Failed = "failed"
 
 -- | A list of files attached to a vector store
 data VectorStoreFileObject = VectorStoreFileObject

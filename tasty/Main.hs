@@ -53,6 +53,8 @@ import OpenAI.Servant.V1.VectorStores
     )
 import OpenAI.Servant.V1.VectorStores.Files
     (CreateVectorStoreFile(..), VectorStoreFileObject(..))
+import OpenAI.Servant.V1.VectorStores.FileBatches
+    (CreateVectorStoreFileBatch(..), VectorStoreFilesBatchObject(..))
 
 import qualified Data.Text as Text
 import qualified Network.HTTP.Client as HTTP.Client
@@ -572,7 +574,7 @@ main = do
                 return ()
 
     let vectorStoreFilesTest = do
-            HUnit.testCase "Vector store file operations" do
+            HUnit.testCase "Vector store file and batch operations" do
                 FileObject{ id = fileId } <- uploadFile UploadFile
                     { file = "tasty/data/v1/vector_stores/index.html"
                     , purpose = Files.Assistants
@@ -591,19 +593,30 @@ main = do
                     , chunking_strategy = Nothing
                     }
 
+                VectorStoreFilesBatchObject{ id = batchId } <- createVectorStoreFileBatch vectorStoreId CreateVectorStoreFileBatch
+                    { file_ids = [ fileId ]
+                    , chunking_strategy = Nothing
+                    }
+
                 _ <- listVectorStores Nothing Nothing Nothing Nothing
 
                 _ <- listVectorStoreFiles vectorStoreId Nothing Nothing Nothing Nothing Nothing
 
+                _ <- listVectorStoreFilesInABatch vectorStoreId batchId Nothing Nothing Nothing Nothing Nothing
+
                 _ <- retrieveVectorStore vectorStoreId
 
                 _ <- retrieveVectorStoreFile vectorStoreId vectorStoreFileId
+
+                _ <- retrieveVectorStoreFileBatch vectorStoreId batchId
 
                 _ <- modifyVectorStore vectorStoreId ModifyVectorStore
                     { name = Nothing
                     , expires_after = Nothing
                     , metadata = Nothing
                     }
+
+                _ <- cancelVectorStoreFileBatch vectorStoreId batchId
 
                 _ <- deleteVectorStoreFile vectorStoreId vectorStoreFileId
 
