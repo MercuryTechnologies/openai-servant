@@ -34,7 +34,7 @@ data CreateUpload = CreateUpload
 _CreateUpload :: CreateUpload
 _CreateUpload = CreateUpload{ }
 
--- | Request body for @\/v1\/uploads\/:id\/parts@
+-- | Request body for @\/v1\/uploads\/:upload_id\/parts@
 data AddUploadPart = AddUploadPart{ data_ :: FilePath }
 
 -- | Default `AddUploadPart`
@@ -53,7 +53,7 @@ instance ToMultipart Tmp AddUploadPart where
             fdFileCType = "application/octet-stream"
             fdPayload = data_
 
--- | Request body for @\/v1\/uploads\/:id\/complete@
+-- | Request body for @\/v1\/uploads\/:upload_id\/complete@
 data CompleteUpload = CompleteUpload
     { part_ids :: Vector Text
     , md5 :: Maybe Text

@@ -60,7 +60,7 @@ _CreateAssistant = CreateAssistant
     , response_format = Nothing
     }
 
--- | Request body for @\/v1\/assistants/:id@
+-- | Request body for @\/v1\/assistants/:assistant_id@
 data ModifyAssistant = ModifyAssistant
     { model :: Text
     , name :: Maybe Text
